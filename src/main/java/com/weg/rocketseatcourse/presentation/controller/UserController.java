@@ -54,4 +54,10 @@ public class UserController {
         UserResponseDTO userResponseDTO = findUserByIdUseCase.findUserByID(id);
         return ResponseEntity.ok().body(userResponseDTO);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(@RequestBody UserRequestDTO userRequestDTO, @PathVariable UUID id){
+        UserResponseDTO userResponseDTO = updateUserUseCase.updateUser(userRequestDTO, id);
+        return ResponseEntity.ok().body(userResponseDTO);
+    }
 }
