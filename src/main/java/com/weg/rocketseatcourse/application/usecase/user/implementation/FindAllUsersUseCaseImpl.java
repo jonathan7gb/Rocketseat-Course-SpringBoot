@@ -7,6 +7,7 @@ import com.weg.rocketseatcourse.application.usecase.user.interfaces.FindAllUsers
 import com.weg.rocketseatcourse.domain.entity.User;
 import com.weg.rocketseatcourse.domain.repository.UserRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class FindAllUsersUseCaseImpl implements FindAllUsersUseCase {
         this.userMapper = userMapper;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserResponseDTO> findAllUsers() {
         List<User> usersList = userRepository.findAll();

@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -45,5 +47,11 @@ public class UserController {
     public ResponseEntity<List<UserResponseDTO>> findAllUsers(){
         List<UserResponseDTO> userResponseDTOS = findAllUsersUseCase.findAllUsers();
         return ResponseEntity.ok().body(userResponseDTOS);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> findUserById(@PathVariable UUID id){
+        UserResponseDTO userResponseDTO = findUserByIdUseCase.findUserByID(id);
+        return ResponseEntity.ok().body(userResponseDTO);
     }
 }

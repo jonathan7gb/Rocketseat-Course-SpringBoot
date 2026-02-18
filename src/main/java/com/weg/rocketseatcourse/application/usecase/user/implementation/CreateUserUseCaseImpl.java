@@ -8,7 +8,7 @@ import com.weg.rocketseatcourse.application.mapper.UserMapper;
 import com.weg.rocketseatcourse.application.usecase.user.interfaces.CreateUserUseCase;
 import com.weg.rocketseatcourse.domain.entity.User;
 import com.weg.rocketseatcourse.domain.repository.UserRepository;
-import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +25,7 @@ public class CreateUserUseCaseImpl implements CreateUserUseCase {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     @Override
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
         if(userRequestDTO == null){
