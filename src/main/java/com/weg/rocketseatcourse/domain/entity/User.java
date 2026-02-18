@@ -22,19 +22,19 @@ public class User {
     @GeneratedValue(generator = "UUID")
     private UUID id;
 
-    @NotNull
-    @NotEmpty
+    @NotNull(message = "Name can't be null")
+    @NotEmpty(message = "Name can't be empty")
     @Column(length = 100)
     private String name;
 
-    @Email
-    @NotEmpty
-    @NotNull
+    @Email(message = "Invalid E-mail")
+    @NotEmpty(message = "E-mail can't be empty")
+    @NotNull(message = "E-mail can't be null")
     @Column(length = 100, unique = true)
     private String email;
 
-    @NotNull
-    @NotEmpty
+    @NotNull(message = "Password can't be null")
+    @NotEmpty(message = "Password can't be empty")
     private String password;
 
     @CreationTimestamp

@@ -3,7 +3,9 @@ package com.weg.rocketseatcourse.application.mapper;
 import com.weg.rocketseatcourse.application.dto.task.TaskRequestDTO;
 import com.weg.rocketseatcourse.application.dto.task.TaskResponseDTO;
 import com.weg.rocketseatcourse.domain.entity.Task;
+import org.springframework.stereotype.Component;
 
+@Component
 public class TaskMapper {
 
     public Task toEntity(TaskRequestDTO taskRequestDTO){

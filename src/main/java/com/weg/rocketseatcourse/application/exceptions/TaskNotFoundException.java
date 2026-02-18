@@ -1,4 +1,4 @@
-package com.weg.rocketseatcourse.domain.exceptions;
+package com.weg.rocketseatcourse.application.exceptions;
 
 public class TaskNotFoundException extends RuntimeException {
     public TaskNotFoundException(String message) {
