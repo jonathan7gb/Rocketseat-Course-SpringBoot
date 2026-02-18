@@ -414,55 +414,192 @@ UserResponseDTO createUser(UserRequestDTO userRequestDTO);
 
 ---
 
-#### FindUserByIdUseCase ⚠️ (Stub)
+#### FindUserByIdUseCase ✅ (Implementado)
 
 **Interface**: `FindUserByIdUseCase`
 ```java
-// Interface vazia - sem método definido
+UserResponseDTO findUserById(UUID id);
 ```
 
 **Implementação**: `FindUserByIdUseCaseImpl`
-```java
-// Apenas construtor - sem lógica
+
+**Responsabilidade**: Buscar um usuário específico por seu ID.
+
+**Dependências**:
+- `UserRepository`: Para buscar o usuário no banco de dados
+- `UserMapper`: Para converter Entity para DTO
+
+**Fluxo Interno Detalhado**:
+
+```
+1. BUSCA NO REPOSITÓRIO
+   └─ userRepository.findById(id)
+      └─ Retorna Optional<User>
+
+2. VALIDAÇÃO DE EXISTÊNCIA
+   └─ Se Optional.isEmpty()
+      └─ Lança UserNotFoundException("User not found!")
+
+3. CONVERSÃO ENTITY → DTO
+   └─ userMapper.toDto(user)
+      └─ Cria UserResponseDTO com os dados do usuário
+
+4. RETORNO
+   └─ Retorna UserResponseDTO
 ```
 
-**Status**: Não implementado (apenas estrutura criada)
+**Exceções Lançadas**:
+- `UserNotFoundException`: Usuário com o ID fornecido não existe
+
+**Status**: ✅ Totalmente implementado e funcional
 
 ---
 
-#### FindAllUsersUseCase ⚠️ (Stub)
+#### FindAllUsersUseCase ✅ (Implementado)
 
-**Interface**: `FindAllUsersUseCase` - Sem métodos definidos
+**Interface**: `FindAllUsersUseCase`
+```java
+List<UserResponseDTO> findAllUsers();
+```
 
-**Implementação**: `FindAllUsersUseCaseImpl` - Sem lógica
+**Implementação**: `FindAllUsersUseCaseImpl`
 
-**Status**: Não implementado
+**Responsabilidade**: Listar todos os usuários cadastrados no sistema.
+
+**Dependências**:
+- `UserRepository`: Para buscar todos os usuários
+- `UserMapper`: Para converter cada Entity para DTO
+
+**Fluxo Interno Detalhado**:
+
+```
+1. BUSCA NO REPOSITÓRIO
+   └─ userRepository.findAll()
+      └─ Retorna List<User>
+
+2. VALIDAÇÃO DE LISTA VAZIA
+   └─ Se list.isEmpty()
+      └─ Lança UserNotFoundException("No users found!")
+
+3. CONVERSÃO ENTITY → DTO (para cada usuário)
+   └─ users.stream()
+      └─ .map(userMapper::toDto)
+      └─ .collect(Collectors.toList())
+
+4. RETORNO
+   └─ Retorna List<UserResponseDTO>
+```
+
+**Exceções Lançadas**:
+- `UserNotFoundException`: Nenhum usuário encontrado no sistema
+
+**Status**: ✅ Totalmente implementado e funcional
 
 ---
 
-#### UpdateUserUseCase ⚠️ (Stub)
+#### UpdateUserUseCase ✅ (Implementado)
 
-**Interface**: `UpdateUserUseCase` - Sem métodos definidos
+**Interface**: `UpdateUserUseCase`
+```java
+UserResponseDTO updateUser(UUID id, UserRequestDTO userRequestDTO);
+```
 
-**Implementação**: `UpdateUserUseCaseImpl` - Sem lógica
+**Implementação**: `UpdateUserUseCaseImpl`
 
-**Status**: Não implementado
+**Responsabilidade**: Atualizar os dados de um usuário existente.
+
+**Dependências**:
+- `UserRepository`: Para buscar e salvar o usuário
+- `UserMapper`: Para converter DTO para Entity
+- `PasswordEncoder`: Para criptografar nova senha (se fornecida)
+
+**Fluxo Interno Detalhado**:
+
+```
+1. VALIDAÇÃO DE ENTRADA
+   └─ Se userRequestDTO == null
+      └─ Lança UserCantBeNullException("User can't be null!")
+
+2. BUSCA DO USUÁRIO EXISTENTE
+   └─ userRepository.findById(id)
+      └─ Se Optional.isEmpty()
+         └─ Lança UserNotFoundException("User not found!")
+
+3. VALIDAÇÃO DE EMAIL (se foi alterado)
+   └─ Se novo email != email atual
+      └─ userRepository.findByEmail(newEmail)
+         └─ Se já existe outro usuário com esse email
+            └─ Lança EmailAlreadyExistsException("E-mail already registered!")
+
+4. ATUALIZAÇÃO DOS DADOS
+   └─ Atualiza name, email
+   └─ Se password foi fornecido
+      └─ Criptografa nova senha com passwordEncoder
+
+5. PERSISTÊNCIA
+   └─ userRepository.save(updatedUser)
+      └─ Salva alterações no banco
+
+6. CONVERSÃO ENTITY → DTO
+   └─ userMapper.toDto(updatedUser)
+
+7. RETORNO
+   └─ Retorna UserResponseDTO atualizado
+```
+
+**Exceções Lançadas**:
+- `UserCantBeNullException`: Entrada nula
+- `UserNotFoundException`: Usuário não encontrado
+- `EmailAlreadyExistsException`: Novo email já está em uso
+
+**Status**: ✅ Totalmente implementado e funcional
 
 ---
 
-#### DeleteUserUseCase ⚠️ (Stub)
+#### DeleteUserUseCase ✅ (Implementado)
 
-**Interface**: `DeleteUserUseCase` - Sem métodos definidos
+**Interface**: `DeleteUserUseCase`
+```java
+void deleteUser(UUID id);
+```
 
-**Implementação**: `DeleteUserUseCaseImpl` - Sem lógica
+**Implementação**: `DeleteUserUseCaseImpl`
 
-**Status**: Não implementado
+**Responsabilidade**: Deletar um usuário do sistema.
+
+**Dependências**:
+- `UserRepository`: Para buscar e deletar o usuário
+
+**Fluxo Interno Detalhado**:
+
+```
+1. BUSCA DO USUÁRIO
+   └─ userRepository.findById(id)
+      └─ Se Optional.isEmpty()
+         └─ Lança UserNotFoundException("User not found!")
+
+2. DELEÇÃO
+   └─ userRepository.deleteById(id)
+      └─ Remove do banco de dados
+
+3. RETORNO
+   └─ Método void - sem retorno
+```
+
+**Exceções Lançadas**:
+- `UserNotFoundException`: Usuário não encontrado
+
+**Regras de Negócio**:
+1. Só pode deletar usuário que existe
+2. Verificação de existência antes da deleção
+
+**Status**: ✅ Totalmente implementado e funcional
 
 ---
 
 ### 4.2 Use Cases de Task
 
-#### CreateTaskUseCase ⚠️ (Parcialmente Implementado)
+#### CreateTaskUseCase ❌ (Não Implementado)
 
 **Interface**: `CreateTaskUseCase`
 ```java
@@ -474,7 +611,7 @@ TaskResponseDTO createTask(TaskRequestDTO taskRequestDTO);
 **Dependências**:
 - `TaskRepository`: Injetado no construtor
 
-**Status**: Estrutura criada, mas **retorna null** - não implementado
+**Status**: ❌ **Estrutura criada, mas retorna null - não implementado**
 
 **Código atual**:
 ```java
@@ -494,21 +631,21 @@ public TaskResponseDTO createTask(TaskRequestDTO taskRequestDTO) {
 
 ---
 
-#### FindAllTasksUseCase ⚠️ (Stub)
+#### FindAllTasksUseCase ❌ (Não Implementado)
 
-**Status**: Não implementado
-
----
-
-#### UpdateTaskUseCase ⚠️ (Stub)
-
-**Status**: Não implementado
+**Status**: ❌ Não implementado - apenas interface e construtor
 
 ---
 
-#### DeleteTaskUseCase ⚠️ (Stub)
+#### UpdateTaskUseCase ❌ (Não Implementado)
 
-**Status**: Não implementado
+**Status**: ❌ Não implementado - apenas interface e construtor
+
+---
+
+#### DeleteTaskUseCase ❌ (Não Implementado)
+
+**Status**: ❌ Não implementado - apenas interface e construtor
 
 ---
 
@@ -517,14 +654,14 @@ public TaskResponseDTO createTask(TaskRequestDTO taskRequestDTO) {
 | Use Case | Status | Observações |
 |----------|--------|-------------|
 | CreateUserUseCase | ✅ Completo | Totalmente funcional com validações |
-| FindUserByIdUseCase | ❌ Não implementado | Interface sem métodos |
-| FindAllUsersUseCase | ❌ Não implementado | Interface sem métodos |
-| UpdateUserUseCase | ❌ Não implementado | Interface sem métodos |
-| DeleteUserUseCase | ❌ Não implementado | Interface sem métodos |
-| CreateTaskUseCase | ⚠️ Parcial | Retorna null |
-| FindAllTasksUseCase | ❌ Não implementado | Interface sem métodos |
-| UpdateTaskUseCase | ❌ Não implementado | Interface sem métodos |
-| DeleteTaskUseCase | ❌ Não implementado | Interface sem métodos |
+| FindUserByIdUseCase | ✅ Completo | Busca por ID com tratamento de erros |
+| FindAllUsersUseCase | ✅ Completo | Listagem com validação de lista vazia |
+| UpdateUserUseCase | ✅ Completo | Atualização completa com validações |
+| DeleteUserUseCase | ✅ Completo | Deleção com verificação de existência |
+| CreateTaskUseCase | ❌ Não implementado | Retorna null |
+| FindAllTasksUseCase | ❌ Não implementado | Apenas estrutura |
+| UpdateTaskUseCase | ❌ Não implementado | Apenas estrutura |
+| DeleteTaskUseCase | ❌ Não implementado | Apenas estrutura |
 
 ---
 
@@ -750,12 +887,13 @@ spring.jpa.hibernate.ddl-auto=update
 
 #### Endpoints:
 
-##### POST /users
+##### POST /users ✅
 
 ```java
 @PostMapping
 public ResponseEntity<UserResponseDTO> saveUser(@RequestBody UserRequestDTO userRequestDTO) {
-    return ResponseEntity.status(HttpStatus.CREATED).build();
+    UserResponseDTO response = createUserUseCase.createUser(userRequestDTO);
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
 }
 ```
 
@@ -772,25 +910,131 @@ public ResponseEntity<UserResponseDTO> saveUser(@RequestBody UserRequestDTO user
 }
 ```
 
-**Response**: HTTP 201 CREATED (corpo vazio)
+**Response**: HTTP 201 CREATED com UserResponseDTO no corpo
 
-**Use Case chamado**: ❌ **NENHUM** - o método não chama `createUserUseCase.createUser()`
+**Use Case chamado**: ✅ `createUserUseCase.createUser()`
 
-**⚠️ PROBLEMA**: O endpoint está retornando resposta vazia. O código correto seria:
-```java
-UserResponseDTO response = createUserUseCase.createUser(userRequestDTO);
-return ResponseEntity.status(HttpStatus.CREATED).body(response);
-```
+**Status**: ✅ Totalmente funcional
 
 ---
 
-#### Outros Endpoints (não implementados):
+##### GET /users ✅
 
-Embora as dependências estejam injetadas, **não há métodos para**:
-- `GET /users` - Listar todos usuários
-- `GET /users/{id}` - Buscar usuário por ID
-- `PUT /users/{id}` - Atualizar usuário
-- `DELETE /users/{id}` - Deletar usuário
+```java
+@GetMapping
+public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+    List<UserResponseDTO> users = findAllUsersUseCase.findAllUsers();
+    return ResponseEntity.status(HttpStatus.OK).body(users);
+}
+```
+
+**Descrição**: Listar todos os usuários
+
+**Método HTTP**: GET
+
+**Response**: HTTP 200 OK com lista de UserResponseDTO
+
+**Use Case chamado**: ✅ `findAllUsersUseCase.findAllUsers()`
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### GET /users/{id} ✅
+
+```java
+@GetMapping("/{id}")
+public ResponseEntity<UserResponseDTO> getUserById(@PathVariable UUID id) {
+    UserResponseDTO user = findUserByIdUseCase.findUserById(id);
+    return ResponseEntity.status(HttpStatus.OK).body(user);
+}
+```
+
+**Descrição**: Buscar usuário por ID
+
+**Método HTTP**: GET
+
+**Path Variable**: `id` (UUID)
+
+**Response**: HTTP 200 OK com UserResponseDTO
+
+**Use Case chamado**: ✅ `findUserByIdUseCase.findUserById(id)`
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### GET /users/email/{email} ✅
+
+```java
+@GetMapping("/email/{email}")
+public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable String email) {
+    UserResponseDTO user = findUserByEmailUseCase.findUserByEmail(email);
+    return ResponseEntity.status(HttpStatus.OK).body(user);
+}
+```
+
+**Descrição**: Buscar usuário por email
+
+**Método HTTP**: GET
+
+**Path Variable**: `email` (String)
+
+**Response**: HTTP 200 OK com UserResponseDTO
+
+**Use Case chamado**: ✅ `findUserByEmailUseCase.findUserByEmail(email)`
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### PUT /users/{id} ✅
+
+```java
+@PutMapping("/{id}")
+public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @RequestBody UserRequestDTO userRequestDTO) {
+    UserResponseDTO user = updateUserUseCase.updateUser(id, userRequestDTO);
+    return ResponseEntity.status(HttpStatus.OK).body(user);
+}
+```
+
+**Descrição**: Atualizar usuário existente
+
+**Método HTTP**: PUT
+
+**Path Variable**: `id` (UUID)
+
+**Request Body**: `UserRequestDTO` (JSON)
+
+**Response**: HTTP 200 OK com UserResponseDTO atualizado
+
+**Use Case chamado**: ✅ `updateUserUseCase.updateUser(id, userRequestDTO)`
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### DELETE /users/{id} ✅
+
+```java
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+    deleteUserUseCase.deleteUser(id);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+}
+```
+
+**Descrição**: Deletar usuário
+
+**Método HTTP**: DELETE
+
+**Path Variable**: `id` (UUID)
+
+**Response**: HTTP 204 NO CONTENT (sem corpo)
+
+**Use Case chamado**: ✅ `deleteUserUseCase.deleteUser(id)`
+
+**Status**: ✅ Totalmente funcional
 
 ---
 
@@ -827,11 +1071,12 @@ O controller possui as dependências injetadas, mas não há métodos públicos 
 
 | Endpoint | Método HTTP | Status | Observação |
 |----------|-------------|--------|------------|
-| `/users` | POST | ⚠️ Parcial | Implementado mas não chama Use Case |
-| `/users` | GET | ❌ Não implementado | - |
-| `/users/{id}` | GET | ❌ Não implementado | - |
-| `/users/{id}` | PUT | ❌ Não implementado | - |
-| `/users/{id}` | DELETE | ❌ Não implementado | - |
+| `/users` | POST | ✅ Implementado | Cria usuário com validações |
+| `/users` | GET | ✅ Implementado | Lista todos os usuários |
+| `/users/{id}` | GET | ✅ Implementado | Busca usuário por ID |
+| `/users/email/{email}` | GET | ✅ Implementado | Busca usuário por email |
+| `/users/{id}` | PUT | ✅ Implementado | Atualiza usuário |
+| `/users/{id}` | DELETE | ✅ Implementado | Deleta usuário |
 | `/tasks` | POST | ❌ Não implementado | - |
 | `/tasks` | GET | ❌ Não implementado | - |
 | `/tasks/{id}` | GET | ❌ Não implementado | - |
@@ -1257,12 +1502,12 @@ public CreateTaskUseCaseImpl(
 
 | Aspecto | User | Task |
 |---------|------|------|
-| **Controller** | Método existe mas não funciona | Método não existe |
-| **Use Case** | ✅ Implementado completo | ❌ Retorna null |
-| **Repository** | ✅ Funcional | ✅ Funcional |
-| **Validações** | ✅ 2 validações programáticas | ❌ Nenhuma |
-| **Mapper** | ✅ Funcional | ✅ Funcional |
-| **Banco de Dados** | ✅ Salva corretamente | ❌ Não chega no banco |
+| **Controller** | ✅ Todos os 6 endpoints implementados | ❌ Nenhum método implementado |
+| **Use Case** | ✅ Todos os 5 use cases implementados | ❌ Retorna null ou vazio |
+| **Repository** | ✅ Funcional | ✅ Funcional (estrutura) |
+| **Validações** | ✅ Validações completas | ❌ Nenhuma |
+| **Mapper** | ✅ Funcional | ✅ Funcional (estrutura) |
+| **Banco de Dados** | ✅ Todas operações CRUD funcionando | ❌ Nenhuma operação implementada |
 
 ---
 
@@ -1774,26 +2019,29 @@ jobs:
 
 #### Estado Atual do Projeto:
 
-**Arquitetura**: ✅ Boa - Segue Clean Architecture  
-**Implementação**: ⚠️ Incompleta - Apenas 1 de 9 Use Cases funciona  
-**Segurança**: ⚠️ Básica - BCrypt ok, mas sem autenticação  
-**Qualidade**: 🟡 Média - Boa estrutura, implementação incompleta
+**Arquitetura**: ✅ Excelente - Segue Clean Architecture  
+**Implementação User**: ✅ Completa - Todos os 5 Use Cases e 6 endpoints funcionando  
+**Implementação Task**: ❌ Não implementada - Apenas estrutura básica  
+**Segurança**: ⚠️ Básica - BCrypt ok, mas sem autenticação JWT  
+**Qualidade**: 🟡 Média - Módulo User completo, Task pendente
 
 #### Prioridades de Melhoria:
 
-1. **Urgente**: Completar implementações faltantes
-2. **Alta**: Corrigir bugs existentes (UserController)
-3. **Alta**: Implementar exception handling
-4. **Média**: Remover violações de segurança (senha no response)
-5. **Média**: Adicionar Bean Validation completo
-6. **Baixa**: Melhorias de qualidade (testes, docs, logging)
+1. **Urgente**: Implementar módulo de Tasks (use cases e endpoints)
+2. **Alta**: Adicionar autenticação JWT
+3. **Alta**: Adicionar autorização baseada em roles
+4. **Média**: Implementar testes automatizados
+5. **Média**: Adicionar paginação nos endpoints de listagem
+6. **Baixa**: Melhorias de qualidade (logging estruturado, health checks)
 
 #### Métricas:
 
-- **Linhas de Código**: ~700
+- **Linhas de Código**: ~1200
 - **Entidades**: 2 (User, Task)
-- **Use Cases**: 9 (11% completos)
-- **Endpoints**: 1 de 10 esperados (10%)
+- **Use Cases User**: 5 de 5 (100% completos)
+- **Use Cases Task**: 0 de 4 (0% completos)
+- **Endpoints User**: 6 de 6 implementados (100%)
+- **Endpoints Task**: 0 de 4 implementados (0%)
 - **Cobertura de Testes**: 0%
 
 ---
@@ -1802,26 +2050,34 @@ jobs:
 
 Este projeto demonstra uma **excelente arquitetura** baseada em Clean Architecture, com separação clara de responsabilidades e uso correto de padrões de design. A estrutura está bem organizada e preparada para escalar.
 
-No entanto, o projeto está em **fase inicial de desenvolvimento**, com a maioria das funcionalidades não implementadas. O código existente (CreateUserUseCase) serve como template para as demais implementações.
+O **módulo de User está completamente funcional**, com todos os 5 use cases implementados e todos os 6 endpoints REST operacionais. O código implementado demonstra boas práticas de validação, criptografia de senha e tratamento de exceções.
+
+O **módulo de Task**, por outro lado, possui apenas a estrutura básica (entidades, interfaces, DTOs), mas sem implementação funcional dos use cases ou endpoints.
 
 **Pontos Positivos**:
-- Arquitetura sólida e escalável
-- Boas práticas de design (Use Cases, Repositories, DTOs)
-- Criptografia de senha implementada corretamente
-- Código limpo e bem organizado
+- ✅ Arquitetura sólida e escalável baseada em Clean Architecture
+- ✅ Módulo User 100% completo e funcional
+- ✅ Boas práticas de design (Use Cases, Repositories, DTOs, Mappers)
+- ✅ Criptografia de senha com BCrypt implementada corretamente
+- ✅ Sistema robusto de exceções customizadas (8 exceções)
+- ✅ GlobalExceptionHandler para tratamento centralizado de erros
+- ✅ Validações com Bean Validation nos DTOs
+- ✅ Código limpo, bem organizado e seguindo SOLID
 
 **Áreas de Melhoria**:
-- Completar implementações faltantes
-- Adicionar testes automatizados
-- Implementar segurança completa
-- Adicionar tratamento de erros robusto
-- Melhorar validações de entrada
+- ❌ Completar implementação do módulo de Tasks (use cases e endpoints)
+- ❌ Adicionar autenticação JWT
+- ❌ Implementar autorização baseada em roles
+- ❌ Adicionar testes automatizados (unitários e de integração)
+- ⚠️ Implementar paginação nos endpoints de listagem
+- ⚠️ Adicionar logging estruturado
+- ⚠️ Configurar health checks e monitoring
 
-Com as melhorias sugeridas, este projeto pode se tornar uma referência de qualidade em aplicações Spring Boot com Clean Architecture.
+**Conclusão Final**: O projeto está em um **excelente estado arquitetural** com o módulo de User completamente implementado e pronto para produção (exceto autenticação). Serve como uma **excelente base** para adicionar o módulo de Tasks e features de segurança. A implementação do módulo User pode ser usada como template/referência para implementar o módulo de Tasks.
 
 ---
 
-**Documento gerado em**: 18 de Fevereiro de 2024  
+**Documento atualizado em**: 18 de Fevereiro de 2026  
 **Versão do Projeto**: 0.0.1-SNAPSHOT  
 **Spring Boot**: 3.5.10  
 **Java**: 21

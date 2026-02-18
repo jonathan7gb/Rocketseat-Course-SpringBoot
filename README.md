@@ -9,10 +9,11 @@ Projeto desenvolvido no curso da Rocketseat sobre Spring Boot, implementando uma
 | 🏗️ Clean Architecture | ✅ Completo | 4 camadas bem definidas |
 | 👤 Criar Usuário | ✅ Completo | POST /users com validações |
 | 👥 Listar Usuários | ✅ Completo | GET /users |
-| 🔍 Buscar Usuário | ⚠️ Em desenvolvimento | GET /users/{id} |
-| ✏️ Atualizar Usuário | ⚠️ Em desenvolvimento | PUT /users/{id} |
-| 🗑️ Deletar Usuário | ⚠️ Em desenvolvimento | DELETE /users/{id} |
-| 📝 CRUD de Tasks | ⚠️ Em desenvolvimento | Todos os endpoints |
+| 🔍 Buscar Usuário por ID | ✅ Completo | GET /users/{id} |
+| 📧 Buscar Usuário por Email | ✅ Completo | GET /users/email/{email} |
+| ✏️ Atualizar Usuário | ✅ Completo | PUT /users/{id} |
+| 🗑️ Deletar Usuário | ✅ Completo | DELETE /users/{id} |
+| 📝 CRUD de Tasks | ❌ Não implementado | Endpoints pendentes |
 | 🔐 Criptografia BCrypt | ✅ Completo | Senhas protegidas |
 | ✔️ Validações | ✅ Completo | Bean Validation nos DTOs |
 | ⚠️ Exception Handling | ✅ Completo | 8 exceções customizadas |
@@ -217,20 +218,39 @@ curl -X POST http://localhost:8080/users \
   GET http://localhost:8080/users
   ```
 
-#### ⚠️ Em Desenvolvimento
-- `GET /users/{id}` - Buscar usuário por ID
-- `PUT /users/{id}` - Atualizar usuário
-- `DELETE /users/{id}` - Deletar usuário
+- **GET /users/{id}** - Buscar usuário por ID
+  ```
+  GET http://localhost:8080/users/{id}
+  ```
+
+- **GET /users/email/{email}** - Buscar usuário por email
+  ```
+  GET http://localhost:8080/users/email/{email}
+  ```
+
+- **PUT /users/{id}** - Atualizar usuário
+  ```json
+  {
+    "name": "João Silva Atualizado",
+    "email": "joao.novo@example.com",
+    "password": "novaSenha123"
+  }
+  ```
+
+- **DELETE /users/{id}** - Deletar usuário
+  ```
+  DELETE http://localhost:8080/users/{id}
+  ```
 
 ### Tasks
 
-#### ⚠️ Em Desenvolvimento
+#### ❌ Não Implementado
 - `POST /tasks` - Criar nova tarefa
 - `GET /tasks` - Listar todas as tarefas
 - `PUT /tasks/{id}` - Atualizar tarefa
 - `DELETE /tasks/{id}` - Deletar tarefa
 
-**Nota**: Apenas os endpoints de criação e listagem de usuários estão totalmente funcionais. Consulte [ANALISE-TECNICA.md](./ANALISE-TECNICA.md) para detalhes do status de cada funcionalidade.
+**Nota**: Todos os endpoints de usuários (Users) estão totalmente funcionais. O módulo de Tasks ainda não foi implementado - apenas a estrutura básica (entidades, interfaces) existe. Consulte [ANALISE-TECNICA.md](./ANALISE-TECNICA.md) para detalhes do status de cada funcionalidade.
 
 ### Estrutura de Dados
 
@@ -267,19 +287,25 @@ Este projeto demonstra a implementação de:
 - **Clean Architecture com Spring Boot** - Separação clara em 4 camadas
 - **Separação em camadas** (Domain, Application, Infra, Presentation)
 - **Padrão Repository** - Interfaces no domínio, implementações na infra
-- **Use Cases** - CreateUserUseCase e FindAllUsersUseCase completos
+- **Use Cases Completos de User** - Todos os 5 use cases implementados:
+  - CreateUserUseCase
+  - FindAllUsersUseCase
+  - FindUserByIdUseCase
+  - UpdateUserUseCase
+  - DeleteUserUseCase
 - **DTOs e Mappers** - Conversão entre entidades e DTOs
 - **Criptografia de senhas** - BCrypt para hash de senhas
 - **Validações** - Bean Validation nos DTOs
 - **Spring Data JPA** - Persistência com MySQL
 - **Exception Handling** - GlobalExceptionHandler com 8 exceções customizadas
 - **Dependency Injection** - Injeção por construtor em todas as classes
+- **CRUD Completo de Users** - Todos os 6 endpoints REST funcionais
 
-### ⚠️ Em Desenvolvimento
-- Endpoints de atualização e deleção de usuários
-- CRUD completo de tarefas (Tasks)
+### ❌ Não Implementado
+- CRUD completo de tarefas (Tasks) - apenas estrutura básica existe
 - Autenticação com JWT
 - Autorização baseada em roles
+- Testes unitários e de integração
 
 ## 🔒 Segurança
 
@@ -299,20 +325,25 @@ Este projeto demonstra a implementação de:
 - ✅ Arquitetura Clean Architecture definida e estruturada
 - ✅ Camadas bem separadas (Domain, Application, Infra, Presentation)
 - ✅ Entidades User e Task modeladas
-- ✅ CreateUserUseCase completo com validações e criptografia
-- ✅ FindAllUsersUseCase completo com tratamento de erros
 - ✅ Sistema de exceções customizadas (8 exceções)
 - ✅ GlobalExceptionHandler implementado
 - ✅ Configuração de segurança com BCrypt
-- ⚠️ CRUD de User parcialmente implementado (2/5 endpoints)
-- ⚠️ CRUD de Task em desenvolvimento (0/4 endpoints)
-- ⚠️ Autenticação JWT pendente
-- ⚠️ Testes unitários pendentes
+- ✅ **CRUD de User COMPLETO (6/6 endpoints)**:
+  - ✅ POST /users - Criar usuário
+  - ✅ GET /users - Listar todos
+  - ✅ GET /users/{id} - Buscar por ID
+  - ✅ GET /users/email/{email} - Buscar por email
+  - ✅ PUT /users/{id} - Atualizar usuário
+  - ✅ DELETE /users/{id} - Deletar usuário
+- ✅ Todos os 5 Use Cases de User implementados com lógica completa
+- ❌ CRUD de Task não implementado (0/4 endpoints) - apenas estrutura básica
+- ❌ Autenticação JWT pendente
+- ❌ Testes unitários pendentes
 
 **Próximos Passos**:
-1. Implementar endpoints restantes de User (FindById, Update, Delete)
-2. Implementar CRUD completo de Tasks
-3. Adicionar autenticação JWT
+1. Implementar CRUD completo de Tasks (criar endpoints e lógica dos use cases)
+2. Adicionar autenticação JWT
+3. Adicionar autorização baseada em roles
 4. Adicionar testes unitários e de integração
 5. Implementar paginação nos endpoints de listagem
 
