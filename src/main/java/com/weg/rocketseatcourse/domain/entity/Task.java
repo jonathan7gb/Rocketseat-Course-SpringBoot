@@ -1,9 +1,6 @@
 package com.weg.rocketseatcourse.domain.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -37,18 +34,29 @@ public class Task {
     private LocalDateTime startAt;
     private LocalDateTime endAt;
     private String priority;
-    private UUID user_id;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
 
-    public Task(String title, String description, LocalDateTime startAt, LocalDateTime endAt, String priority, UUID user_id) {
+    public Task(String title, String description, LocalDateTime startAt, LocalDateTime endAt, String priority, User user) {
         this.title = title;
         this.description = description;
         this.startAt = startAt;
         this.endAt = endAt;
         this.priority = priority;
-        this.user_id = user_id;
+        this.user = user;
+    }
+
+    public Task(String title, String description, LocalDateTime startAt, LocalDateTime endAt, String priority) {
+        this.title = title;
+        this.description = description;
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.priority = priority;
     }
 }

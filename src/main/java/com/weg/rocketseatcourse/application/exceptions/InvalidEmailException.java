@@ -1,4 +1,4 @@
-package com.weg.rocketseatcourse.domain.exceptions;
+package com.weg.rocketseatcourse.application.exceptions;
 
 public class InvalidEmailException extends RuntimeException {
     public InvalidEmailException(String message) {

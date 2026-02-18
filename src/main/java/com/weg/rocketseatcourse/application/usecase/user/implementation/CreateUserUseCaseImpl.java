@@ -30,7 +30,7 @@ public class CreateUserUseCaseImpl implements CreateUserUseCase {
         if(userRequestDTO == null){
             throw new UserCantBeNullException("User can't be null!");
         }
-        if(userRepository.findByEmail(userRequestDTO.email()).isPresent()){
+        if(userRepository.existsByEmail(userRequestDTO.email())){
             throw new EmailAlreadyExistsException("E-mail already registered!");
         }
 

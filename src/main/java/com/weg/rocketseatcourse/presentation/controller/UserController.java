@@ -4,6 +4,7 @@ import com.weg.rocketseatcourse.application.dto.user.UserRequestDTO;
 import com.weg.rocketseatcourse.application.dto.user.UserResponseDTO;
 
 import com.weg.rocketseatcourse.application.usecase.user.interfaces.*;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,8 +37,8 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponseDTO> saveUser(@RequestBody UserRequestDTO userRequestDTO){
-
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public ResponseEntity<UserResponseDTO> saveUser(@Valid @RequestBody UserRequestDTO userRequestDTO){
+        UserResponseDTO userCreated = createUserUseCase.createUser(userRequestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userCreated);
     }
 }
