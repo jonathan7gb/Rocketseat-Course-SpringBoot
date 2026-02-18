@@ -1,4 +1,8 @@
 package com.weg.rocketseatcourse.application.usecase.task.implementation;
 
-public class DeleteTaskUseCaseImpl {
+import com.weg.rocketseatcourse.application.usecase.task.interfaces.DeleteTaskUseCase;
+import org.springframework.stereotype.Component;
+
+@Component
+public class DeleteTaskUseCaseImpl implements DeleteTaskUseCase {
 }

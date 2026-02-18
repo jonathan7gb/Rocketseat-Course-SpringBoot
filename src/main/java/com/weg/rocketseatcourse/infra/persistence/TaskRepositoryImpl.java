@@ -5,5 +5,5 @@ import org.springframework.scheduling.config.Task;
 
 import java.util.UUID;
 
-public interface TaskRepositoryImpl extends JpaRepository<UUID, Task> {
+public interface TaskRepositoryImpl extends JpaRepository<Task, UUID> {
 }
