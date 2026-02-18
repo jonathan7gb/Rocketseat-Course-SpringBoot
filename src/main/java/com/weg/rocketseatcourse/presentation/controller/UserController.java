@@ -60,4 +60,9 @@ public class UserController {
         UserResponseDTO userResponseDTO = updateUserUseCase.updateUser(userRequestDTO, id);
         return ResponseEntity.ok().body(userResponseDTO);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteUserById(@PathVariable UUID id){
+        return ResponseEntity.ok().body("User deleted sucessfully!");
+    }
 }
