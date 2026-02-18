@@ -42,4 +42,13 @@ public class Task {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+
+    public Task(String title, String description, LocalDateTime startAt, LocalDateTime endAt, String priority, UUID user_id) {
+        this.title = title;
+        this.description = description;
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.priority = priority;
+        this.user_id = user_id;
+    }
 }
