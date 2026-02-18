@@ -33,6 +33,7 @@ public class FindUserByIdUseCaseImpl implements FindUserByIdUseCase {
     }
 
     @Transactional(readOnly = true)
+    @Override
     public UserResponseDTO findUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User with this e-mail not found!"));
