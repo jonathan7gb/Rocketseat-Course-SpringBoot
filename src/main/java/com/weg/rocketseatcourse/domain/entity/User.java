@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -44,5 +45,9 @@ public class User {
         this.name = name;
         this.email = email;
         this.password = password;
+    }
+
+    public void encryptPassword(PasswordEncoder encoder) {
+        this.password = encoder.encode(this.password);
     }
 }
