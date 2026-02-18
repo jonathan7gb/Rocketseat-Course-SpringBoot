@@ -1,4 +1,7 @@
 package com.weg.rocketseatcourse.application.dto.user;
 
-public class UserRequestDTO {
+public record UserRequestDTO (String name,
+                              String email,
+                              String password
+                            ) {
 }

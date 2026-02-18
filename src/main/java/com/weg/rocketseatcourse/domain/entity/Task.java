@@ -34,8 +34,8 @@ public class Task {
     @NotNull
     @Column(length = 255)
     private String description;
-    private String startAt;
-    private String endAt;
+    private LocalDateTime startAt;
+    private LocalDateTime endAt;
     private String priority;
     private UUID user_id;
 
