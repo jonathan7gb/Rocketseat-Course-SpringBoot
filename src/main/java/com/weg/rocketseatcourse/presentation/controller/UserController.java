@@ -55,7 +55,7 @@ import java.util.UUID;
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<UserResponseDTO> findUserById(@PathVariable("email") String email){
+    public ResponseEntity<UserResponseDTO> findUserByEmail(@PathVariable("email") String email){
         UserResponseDTO userResponseDTO = findUserByIdUseCase.findUserByEmail(email);
         return ResponseEntity.ok().body(userResponseDTO);
     }
