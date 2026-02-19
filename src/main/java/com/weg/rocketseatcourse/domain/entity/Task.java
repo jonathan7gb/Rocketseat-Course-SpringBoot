@@ -22,13 +22,9 @@ public class Task {
     @GeneratedValue(generator = "UUID")
     private UUID id;
 
-    @NotEmpty(message = "Title can't be empty")
-    @NotNull(message = "Title can't be null")
     @Column(length = 50)
     private String title;
 
-    @NotEmpty(message = "Description can't be empty")
-    @NotNull(message = "Description can't be null")
     @Column(length = 255)
     private String description;
     private LocalDateTime startAt;

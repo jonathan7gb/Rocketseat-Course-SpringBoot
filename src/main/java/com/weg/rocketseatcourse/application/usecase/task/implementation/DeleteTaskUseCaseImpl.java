@@ -4,6 +4,8 @@ import com.weg.rocketseatcourse.application.usecase.task.interfaces.DeleteTaskUs
 import com.weg.rocketseatcourse.domain.repository.TaskRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class DeleteTaskUseCaseImpl implements DeleteTaskUseCase {
 
@@ -11,5 +13,10 @@ public class DeleteTaskUseCaseImpl implements DeleteTaskUseCase {
 
     public DeleteTaskUseCaseImpl(TaskRepository taskRepository){
         this.taskRepository = taskRepository;
+    }
+
+    @Override
+    public void deleteTaskById(UUID id) {
+
     }
 }

@@ -17,6 +17,9 @@ public record TaskRequestDTO (
         String description,
         LocalDateTime startAt,
         LocalDateTime endAt,
+
+        @NotEmpty(message = "Priority can't be empty")
+        @NotNull(message = "Priority can't be null")
         String priority,
         UUID user_id
 ){
