@@ -1,5 +1,6 @@
 package com.weg.rocketseatcourse.domain.entity;
 
+import com.weg.rocketseatcourse.domain.enums.TaskPriority;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -22,17 +23,19 @@ public class Task {
     @GeneratedValue(generator = "UUID")
     private UUID id;
 
-    @Column(length = 50)
+    @Column(length = 50, nullable = false)
     private String title;
 
-    @Column(length = 255)
+    @Column(length = 255, nullable = false)
     private String description;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
-    private String priority;
+
+    @Enumerated(EnumType.STRING)
+    private TaskPriority priority;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @CreationTimestamp

@@ -1,5 +1,6 @@
 package com.weg.rocketseatcourse.application.dto.task;
 
+import com.weg.rocketseatcourse.domain.enums.TaskPriority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,7 +15,7 @@ public record TaskRequestDTO (
         String description,
 
         @NotBlank(message = "Priority can't be blank")
-        String priority,
+        TaskPriority priority,
 
         @NotNull(message = "User can't be null")
         UUID user_id

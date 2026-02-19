@@ -2,6 +2,7 @@ package com.weg.rocketseatcourse.application.dto.task;
 
 import com.weg.rocketseatcourse.application.dto.user.UserResponseDTO;
 import com.weg.rocketseatcourse.domain.entity.User;
+import com.weg.rocketseatcourse.domain.enums.TaskPriority;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -11,7 +12,7 @@ public record TaskResponseDTO (UUID id,
                                String description,
                                LocalDateTime startAt,
                                LocalDateTime endAt,
-                               String priority,
+                               TaskPriority priority,
                                UserResponseDTO user,
                                LocalDateTime createdAt
                                ){
