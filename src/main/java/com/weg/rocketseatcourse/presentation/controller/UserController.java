@@ -71,4 +71,10 @@ import java.util.UUID;
         deleteUserUseCase.deleteUserById(id);
         return ResponseEntity.ok().body("User deleted sucessfully!");
     }
+
+    @GetMapping("/searchbyname/{name}")
+    public ResponseEntity<List<UserResponseDTO>> findByName(@PathVariable String name){
+        List<UserResponseDTO> responseDTOS = findUserByIdUseCase.findByName(name);
+        return ResponseEntity.ok().body(responseDTOS);
+    }
 }

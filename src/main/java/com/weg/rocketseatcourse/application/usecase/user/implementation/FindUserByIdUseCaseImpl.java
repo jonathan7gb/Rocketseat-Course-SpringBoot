@@ -9,6 +9,7 @@ import com.weg.rocketseatcourse.domain.repository.UserRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,5 +40,15 @@ public class FindUserByIdUseCaseImpl implements FindUserByIdUseCase {
                 .orElseThrow(() -> new UserNotFoundException("User with this e-mail not found!"));
 
         return userMapper.toDto(user);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<UserResponseDTO> findByName(String name){
+        List<User> usersFound = userRepository.findByNameContainingIgnoreCaseOrderByNameAsc(name);
+        if(usersFound.isEmpty()){
+            throw new UserNotFoundException("No users found!");
+        }
+        return userMapper.listEntityToDto(usersFound);
     }
 }

@@ -13,4 +13,6 @@ public interface UserJpaRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
     boolean existsByEmailAndIdNot(String email, UUID id);
     List<User> findAllByOrderByNameAsc();
+    List<User> findByNameContainingIgnoreCaseOrderByNameAsc(String name);
+
 }

@@ -32,6 +32,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public List<User> findByNameContainingIgnoreCaseOrderByNameAsc(String name) {
+        return userJpaRepository.findByNameContainingIgnoreCaseOrderByNameAsc(name);
+    }
+
+    @Override
     public List<User> findAll() {
         return userJpaRepository.findAll();
     }

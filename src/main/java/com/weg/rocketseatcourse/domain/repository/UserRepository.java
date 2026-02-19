@@ -9,11 +9,15 @@ import java.util.UUID;
 public interface UserRepository {
 
     User save(User user);
-    Optional<User> findById(UUID id);
+
     List<User> findAll();
-    void deleteById(UUID id);
+    List<User> findAllByOrderByNameAsc();
     Optional<User>  findByEmail(String email);
+    Optional<User> findById(UUID id);
+    List<User> findByNameContainingIgnoreCaseOrderByNameAsc(String name);
+
+    void deleteById(UUID id);
+
     boolean existsByEmail(String email);
     boolean existsByEmailAndIdNot(String email, UUID id);
-    List<User> findAllByOrderByNameAsc();
 }
