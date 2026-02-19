@@ -4,36 +4,33 @@ import com.weg.rocketseatcourse.application.dto.user.UserRequestDTO;
 import com.weg.rocketseatcourse.application.dto.user.UserResponseDTO;
 
 import com.weg.rocketseatcourse.application.usecase.user.interfaces.*;
-import com.weg.rocketseatcourse.domain.entity.User;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-@RestController
-@RequestMapping("/users")
-public class UserController {
-
-    private final CreateUserUseCase createUserUseCase;
-    private final FindAllUsersUseCase findAllUsersUseCase;
-    private final FindUserByIdUseCase findUserByIdUseCase;
-    private final UpdateUserUseCase updateUserUseCase;
-    private final DeleteUserUseCase deleteUserUseCase;
-
-    public UserController(
-            CreateUserUseCase createUserUseCase,
-            FindAllUsersUseCase findAllUsersUseCase,
-            FindUserByIdUseCase findUserByIdUseCase,
-            UpdateUserUseCase updateUserUseCase,
-            DeleteUserUseCase deleteUserUseCase
-    ){
-        this.createUserUseCase = createUserUseCase;
-        this.findAllUsersUseCase = findAllUsersUseCase;
+    @RestController
+    @RequestMapping("/users")
+    public class UserController {
+    
+        private final CreateUserUseCase createUserUseCase;
+        private final FindAllUsersUseCase findAllUsersUseCase;
+        private final FindUserByIdUseCase findUserByIdUseCase;
+        private final UpdateUserUseCase updateUserUseCase;
+        private final DeleteUserUseCase deleteUserUseCase;
+    
+        public UserController(
+                CreateUserUseCase createUserUseCase,
+                FindAllUsersUseCase findAllUsersUseCase,
+                FindUserByIdUseCase findUserByIdUseCase,
+                UpdateUserUseCase updateUserUseCase,
+                DeleteUserUseCase deleteUserUseCase
+        ){
+            this.createUserUseCase = createUserUseCase;
+            this.findAllUsersUseCase = findAllUsersUseCase;
         this.findUserByIdUseCase = findUserByIdUseCase;
         this.updateUserUseCase = updateUserUseCase;
         this.deleteUserUseCase = deleteUserUseCase;
