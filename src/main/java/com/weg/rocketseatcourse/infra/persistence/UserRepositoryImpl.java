@@ -1,11 +1,13 @@
 package com.weg.rocketseatcourse.infra.persistence;
 
+import com.weg.rocketseatcourse.application.dto.user.UserResponseDTO;
 import com.weg.rocketseatcourse.domain.entity.User;
 import com.weg.rocketseatcourse.domain.repository.UserRepository;
 import com.weg.rocketseatcourse.infra.persistence.jpa.UserJpaRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

@@ -6,9 +6,11 @@ import com.weg.rocketseatcourse.application.mapper.UserMapper;
 import com.weg.rocketseatcourse.application.usecase.user.interfaces.FindAllUsersUseCase;
 import com.weg.rocketseatcourse.domain.entity.User;
 import com.weg.rocketseatcourse.domain.repository.UserRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Component
@@ -30,6 +32,7 @@ public class FindAllUsersUseCaseImpl implements FindAllUsersUseCase {
         if(usersList.isEmpty()){
             throw new UserNotFoundException("No users found!");
         }
+        usersList.sort((Comparator.comparing(User::getName)));
         return userMapper.listEntityToDto(usersList);
     }
 }
