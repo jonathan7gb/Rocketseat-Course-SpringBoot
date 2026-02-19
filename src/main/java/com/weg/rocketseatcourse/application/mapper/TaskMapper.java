@@ -15,7 +15,7 @@ public class TaskMapper {
     }
 
     public Task toEntity(TaskRequestDTO taskRequestDTO){
-        return new Task(taskRequestDTO.title(), taskRequestDTO.description(), taskRequestDTO.startAt(), taskRequestDTO.endAt(), taskRequestDTO.priority(), null);
+        return new Task(taskRequestDTO.title(), taskRequestDTO.description(), taskRequestDTO.priority(), null);
     }
 
     public TaskResponseDTO toDto(Task task){

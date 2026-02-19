@@ -55,4 +55,11 @@ public class Task {
         this.endAt = endAt;
         this.priority = priority;
     }
+
+    public Task(String title, String description, String priority, User user) {
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.user = user;
+    }
 }

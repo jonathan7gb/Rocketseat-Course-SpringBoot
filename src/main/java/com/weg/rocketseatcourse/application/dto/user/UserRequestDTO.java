@@ -1,22 +1,17 @@
 package com.weg.rocketseatcourse.application.dto.user;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record UserRequestDTO (
-        @NotNull(message = "Name can't be null")
-        @NotEmpty(message = "Name can't be empty")
+        @NotBlank(message = "Name can't be blank")
         String name,
 
         @Email(message = "Invalid E-mail")
-        @NotEmpty(message = "E-mail can't be empty")
-        @NotNull(message = "E-mail can't be null")
+        @NotBlank(message = "E-mail can't be blank")
         String email,
 
-        @NotNull(message = "Password can't be null")
-        @NotEmpty(message = "Password can't be empty")
+        @NotBlank(message = "Password can't be blank")
         String password
 ) {
 }

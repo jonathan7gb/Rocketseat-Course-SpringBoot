@@ -28,9 +28,6 @@ public class CreateUserUseCaseImpl implements CreateUserUseCase {
     @Transactional
     @Override
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
-        if(userRequestDTO == null){
-            throw new UserCantBeNullException("User can't be null!");
-        }
         if(userRepository.existsByEmail(userRequestDTO.email())){
             throw new EmailAlreadyExistsException("E-mail already registered!");
         }
