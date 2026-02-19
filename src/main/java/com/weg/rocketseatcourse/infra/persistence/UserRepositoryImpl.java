@@ -55,4 +55,9 @@ public class UserRepositoryImpl implements UserRepository {
     public boolean existsByEmailAndIdNot(String email, UUID id){
         return userJpaRepository.existsByEmailAndIdNot(email, id);
     }
+
+    @Override
+    public List<User> findAllByOrderByNameAsc(){
+        return userJpaRepository.findAllByOrderByNameAsc();
+    }
 }

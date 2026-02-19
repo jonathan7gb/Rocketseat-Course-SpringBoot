@@ -28,11 +28,10 @@ public class FindAllUsersUseCaseImpl implements FindAllUsersUseCase {
     @Transactional(readOnly = true)
     @Override
     public List<UserResponseDTO> findAllUsers() {
-        List<User> usersList = userRepository.findAll();
+        List<User> usersList = userRepository.findAllByOrderByNameAsc();
         if(usersList.isEmpty()){
             throw new UserNotFoundException("No users found!");
         }
-        usersList.sort((Comparator.comparing(User::getName)));
         return userMapper.listEntityToDto(usersList);
     }
 }

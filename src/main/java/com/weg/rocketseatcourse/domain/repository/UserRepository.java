@@ -15,4 +15,5 @@ public interface UserRepository {
     Optional<User>  findByEmail(String email);
     boolean existsByEmail(String email);
     boolean existsByEmailAndIdNot(String email, UUID id);
+    List<User> findAllByOrderByNameAsc();
 }
