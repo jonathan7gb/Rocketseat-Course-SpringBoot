@@ -13,7 +13,7 @@ Projeto desenvolvido no curso da Rocketseat sobre Spring Boot, implementando uma
 | 📧 Buscar Usuário por Email | ✅ Completo | GET /users/email/{email} |
 | ✏️ Atualizar Usuário | ✅ Completo | PUT /users/{id} |
 | 🗑️ Deletar Usuário | ✅ Completo | DELETE /users/{id} |
-| 📝 CRUD de Tasks | ❌ Não implementado | Endpoints pendentes |
+| 📝 CRUD de Tasks | ✅ Completo | POST, GET, PUT, DELETE + filtros |
 | 🔐 Criptografia BCrypt | ✅ Completo | Senhas protegidas |
 | ✔️ Validações | ✅ Completo | Bean Validation nos DTOs |
 | ⚠️ Exception Handling | ✅ Completo | 8 exceções customizadas |
@@ -244,13 +244,26 @@ curl -X POST http://localhost:8080/users \
 
 ### Tasks
 
-#### ❌ Não Implementado
-- `POST /tasks` - Criar nova tarefa
-- `GET /tasks` - Listar todas as tarefas
-- `PUT /tasks/{id}` - Atualizar tarefa
-- `DELETE /tasks/{id}` - Deletar tarefa
+#### ✅ Implementados
+- **POST /tasks** - Criar nova tarefa
+  ```json
+  {
+    "title": "Minha tarefa",
+    "description": "Descrição da tarefa",
+    "startAt": "2024-01-15T10:00:00",
+    "endAt": "2024-01-15T18:00:00",
+    "priority": "HIGH",
+    "userId": "550e8400-e29b-41d4-a716-446655440000"
+  }
+  ```
 
-**Nota**: Todos os endpoints de usuários (Users) estão totalmente funcionais. O módulo de Tasks ainda não foi implementado - apenas a estrutura básica (entidades, interfaces) existe. Consulte [ANALISE-TECNICA.md](./ANALISE-TECNICA.md) para detalhes do status de cada funcionalidade.
+- **GET /tasks** - Listar todas as tarefas
+- **GET /tasks/{id}** - Buscar tarefa por ID
+- **GET /tasks/searchbytitle/{title}** - Buscar tarefas por título
+- **GET /tasks/searchbyuser/{user_id}** - Buscar tarefas por usuário
+- **GET /tasks/searchbypriority/{priority}** - Buscar tarefas por prioridade
+- **PUT /tasks/{id}** - Atualizar tarefa
+- **DELETE /tasks/{id}** - Deletar tarefa
 
 ### Estrutura de Dados
 
@@ -265,7 +278,7 @@ curl -X POST http://localhost:8080/users \
 }
 ```
 
-#### Task (Estrutura planejada)
+#### Task (Estrutura implementada)
 ```json
 {
   "id": "UUID",
@@ -287,6 +300,12 @@ Este projeto demonstra a implementação de:
 - **Clean Architecture com Spring Boot** - Separação clara em 4 camadas
 - **Separação em camadas** (Domain, Application, Infra, Presentation)
 - **Padrão Repository** - Interfaces no domínio, implementações na infra
+- **Use Cases Completos de Task** - Todos os 5 use cases implementados:
+  - CreateTaskUseCase
+  - FindAllTasksUseCase
+  - FindTaskByIdUseCase
+  - UpdateTaskUseCase
+  - DeleteTaskUseCase
 - **Use Cases Completos de User** - Todos os 5 use cases implementados:
   - CreateUserUseCase
   - FindAllUsersUseCase
@@ -300,9 +319,13 @@ Este projeto demonstra a implementação de:
 - **Exception Handling** - GlobalExceptionHandler com 8 exceções customizadas
 - **Dependency Injection** - Injeção por construtor em todas as classes
 - **CRUD Completo de Users** - Todos os 6 endpoints REST funcionais
+- **CRUD Completo de Tasks** - 8 endpoints REST funcionais:
+  - POST /tasks, GET /tasks, GET /tasks/{id}
+  - GET /tasks/searchbytitle/{title}, GET /tasks/searchbyuser/{user_id}
+  - GET /tasks/searchbypriority/{priority}
+  - PUT /tasks/{id}, DELETE /tasks/{id}
 
 ### ❌ Não Implementado
-- CRUD completo de tarefas (Tasks) - apenas estrutura básica existe
 - Autenticação com JWT
 - Autorização baseada em roles
 - Testes unitários e de integração
@@ -336,18 +359,34 @@ Este projeto demonstra a implementação de:
   - ✅ PUT /users/{id} - Atualizar usuário
   - ✅ DELETE /users/{id} - Deletar usuário
 - ✅ Todos os 5 Use Cases de User implementados com lógica completa
-- ❌ CRUD de Task não implementado (0/4 endpoints) - apenas estrutura básica
+- ✅ **CRUD de Task COMPLETO (8 endpoints)**:
+  - ✅ POST /tasks - Criar tarefa
+  - ✅ GET /tasks - Listar todas
+  - ✅ GET /tasks/{id} - Buscar por ID
+  - ✅ GET /tasks/searchbytitle/{title} - Buscar por título
+  - ✅ GET /tasks/searchbyuser/{user_id} - Buscar por usuário
+  - ✅ GET /tasks/searchbypriority/{priority} - Buscar por prioridade
+  - ✅ PUT /tasks/{id} - Atualizar tarefa
+  - ✅ DELETE /tasks/{id} - Deletar tarefa
+- ✅ Todos os 5 Use Cases de Task implementados com lógica completa
 - ❌ Autenticação JWT pendente
 - ❌ Testes unitários pendentes
 
 **Próximos Passos**:
-1. Implementar CRUD completo de Tasks (criar endpoints e lógica dos use cases)
-2. Adicionar autenticação JWT
-3. Adicionar autorização baseada em roles
-4. Adicionar testes unitários e de integração
-5. Implementar paginação nos endpoints de listagem
+1. Adicionar autenticação JWT
+2. Adicionar autorização baseada em roles
+3. Adicionar testes unitários e de integração
+4. Implementar paginação nos endpoints de listagem
 
 Para uma visão completa do status, melhorias sugeridas e análise técnica, consulte [ANALISE-TECNICA.md](./ANALISE-TECNICA.md).
+
+## 🌐 Front End
+
+A interface web para esta API está disponível em um repositório separado:
+
+👉 **[ToDo-List-Rocketseat-Front](https://github.com/jonathan7gb/ToDo-List-Rocketseat-Front)**
+
+Desenvolvido com HTML5, JavaScript e Tailwind CSS, o front end consome diretamente esta API REST.
 
 ## 👨‍💻 Autor
 
