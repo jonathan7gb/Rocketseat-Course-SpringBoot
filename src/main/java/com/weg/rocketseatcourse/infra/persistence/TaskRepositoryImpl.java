@@ -38,4 +38,9 @@ public class TaskRepositoryImpl implements TaskRepository {
     public void deleteById(UUID id) {
         taskJpaRepository.deleteById(id);
     }
+
+    @Override
+    public List<Task> findByTitleContainingIgnoreCaseOrderByTitleAsc(String title){
+        return taskJpaRepository.findByTitleContainingIgnoreCaseOrderByTitleAsc(title);
+    }
 }

@@ -2,16 +2,15 @@ package com.weg.rocketseatcourse.presentation.controller;
 
 import com.weg.rocketseatcourse.application.dto.task.TaskRequestDTO;
 import com.weg.rocketseatcourse.application.dto.task.TaskResponseDTO;
-import com.weg.rocketseatcourse.application.usecase.task.interfaces.CreateTaskUseCase;
-import com.weg.rocketseatcourse.application.usecase.task.interfaces.DeleteTaskUseCase;
-import com.weg.rocketseatcourse.application.usecase.task.interfaces.FindAllTasksUseCase;
-import com.weg.rocketseatcourse.application.usecase.task.interfaces.UpdateTaskUseCase;
+import com.weg.rocketseatcourse.application.usecase.task.implementation.FindTaskByIdUseCaseImpl;
+import com.weg.rocketseatcourse.application.usecase.task.interfaces.*;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/tasks")
@@ -19,17 +18,20 @@ public class TaskController {
 
     private final CreateTaskUseCase createTaskUseCase;
     private final FindAllTasksUseCase findAllTasksUseCase;
+    private final FindTaskByIdUseCase findTaskByIdUseCase;
     private final UpdateTaskUseCase updateTaskUseCase;
     private final DeleteTaskUseCase deleteTaskUseCase;
 
     public TaskController(
             CreateTaskUseCase createTaskUseCase,
             FindAllTasksUseCase findAllTasksUseCase,
+            FindTaskByIdUseCase findTaskByIdUseCase,
             UpdateTaskUseCase updateTaskUseCase,
             DeleteTaskUseCase deleteTaskUseCase
     ){
         this.createTaskUseCase = createTaskUseCase;
         this.findAllTasksUseCase = findAllTasksUseCase;
+        this.findTaskByIdUseCase = findTaskByIdUseCase;
         this.updateTaskUseCase = updateTaskUseCase;
         this.deleteTaskUseCase = deleteTaskUseCase;
     }
@@ -42,5 +44,10 @@ public class TaskController {
     @GetMapping
     public ResponseEntity<List<TaskResponseDTO>> findAllTasks(){
         return ResponseEntity.ok().body(findAllTasksUseCase.findAllTasks());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<TaskResponseDTO> findTaskById(@PathVariable UUID id){
+        return ResponseEntity.ok().body(findTaskByIdUseCase.findTaskByID(id));
     }
 }
