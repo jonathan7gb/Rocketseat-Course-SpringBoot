@@ -42,6 +42,11 @@ public class FindTaskByIdUseCaseImpl implements FindTaskByIdUseCase {
 
     @Override
     public List<TaskResponseDTO> findByUser(UUID user_id) {
-        return List.of();
+        List<Task> tasks = taskRepository.findByUserId(user_id);
+        if(tasks.isEmpty()){
+            throw new TaskNotFoundException("No tasks found!");
+        }
+
+        return taskMapper.listEntityToDto(tasks);
     }
 }

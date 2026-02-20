@@ -13,4 +13,5 @@ public interface TaskRepository {
     List<Task> findAll();
     void deleteById(UUID id);
     List<Task> findByTitleContainingIgnoreCaseOrderByTitleAsc(String title);
+    List<Task> findByUserId(UUID user_id);
 }

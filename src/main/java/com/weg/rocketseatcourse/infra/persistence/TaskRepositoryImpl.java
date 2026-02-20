@@ -43,4 +43,9 @@ public class TaskRepositoryImpl implements TaskRepository {
     public List<Task> findByTitleContainingIgnoreCaseOrderByTitleAsc(String title){
         return taskJpaRepository.findByTitleContainingIgnoreCaseOrderByTitleAsc(title);
     }
+
+    @Override
+    public List<Task> findByUserId(UUID user_id) {
+        return taskJpaRepository.findAllByUser_Id(user_id);
+    }
 }
