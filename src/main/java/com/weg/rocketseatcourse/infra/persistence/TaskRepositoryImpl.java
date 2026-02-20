@@ -1,6 +1,7 @@
 package com.weg.rocketseatcourse.infra.persistence;
 
 import com.weg.rocketseatcourse.domain.entity.Task;
+import com.weg.rocketseatcourse.domain.enums.TaskPriority;
 import com.weg.rocketseatcourse.domain.repository.TaskRepository;
 import com.weg.rocketseatcourse.infra.persistence.jpa.TaskJpaRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -47,5 +48,10 @@ public class TaskRepositoryImpl implements TaskRepository {
     @Override
     public List<Task> findByUserId(UUID user_id) {
         return taskJpaRepository.findAllByUser_Id(user_id);
+    }
+
+    @Override
+    public List<Task> findByPriority(TaskPriority priority) {
+        return taskJpaRepository.findAllByPriority(priority);
     }
 }

@@ -4,6 +4,7 @@ import com.weg.rocketseatcourse.application.dto.task.TaskRequestDTO;
 import com.weg.rocketseatcourse.application.dto.task.TaskResponseDTO;
 import com.weg.rocketseatcourse.application.usecase.task.implementation.FindTaskByIdUseCaseImpl;
 import com.weg.rocketseatcourse.application.usecase.task.interfaces.*;
+import com.weg.rocketseatcourse.domain.enums.TaskPriority;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,9 +57,14 @@ public class TaskController {
         return ResponseEntity.ok().body(findTaskByIdUseCase.findByTitle(title));
     }
 
-    @GetMapping("/searchbytuser/{user_id}")
+    @GetMapping("/searchbyuser/{user_id}")
     public ResponseEntity<List<TaskResponseDTO>> findTasksByTitle(@PathVariable UUID user_id){
         return ResponseEntity.ok().body(findTaskByIdUseCase.findByUser(user_id));
+    }
+
+    @GetMapping("/searchbypriority/{priority}")
+    public ResponseEntity<List<TaskResponseDTO>> findTasksByTitle(@PathVariable TaskPriority priority){
+        return ResponseEntity.ok().body(findTaskByIdUseCase.findByPriority(priority));
     }
 
     @PutMapping("/{id}")

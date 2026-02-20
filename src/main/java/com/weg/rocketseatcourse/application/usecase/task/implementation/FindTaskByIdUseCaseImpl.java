@@ -5,6 +5,7 @@ import com.weg.rocketseatcourse.application.exceptions.TaskNotFoundException;
 import com.weg.rocketseatcourse.application.mapper.TaskMapper;
 import com.weg.rocketseatcourse.application.usecase.task.interfaces.FindTaskByIdUseCase;
 import com.weg.rocketseatcourse.domain.entity.Task;
+import com.weg.rocketseatcourse.domain.enums.TaskPriority;
 import com.weg.rocketseatcourse.domain.repository.TaskRepository;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +44,16 @@ public class FindTaskByIdUseCaseImpl implements FindTaskByIdUseCase {
     @Override
     public List<TaskResponseDTO> findByUser(UUID user_id) {
         List<Task> tasks = taskRepository.findByUserId(user_id);
+        if(tasks.isEmpty()){
+            throw new TaskNotFoundException("No tasks found!");
+        }
+
+        return taskMapper.listEntityToDto(tasks);
+    }
+
+    @Override
+    public List<TaskResponseDTO> findByPriority(TaskPriority priority) {
+        List<Task> tasks = taskRepository.findByPriority(priority);
         if(tasks.isEmpty()){
             throw new TaskNotFoundException("No tasks found!");
         }
