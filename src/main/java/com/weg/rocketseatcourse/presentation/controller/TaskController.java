@@ -60,4 +60,15 @@ public class TaskController {
     public ResponseEntity<List<TaskResponseDTO>> findTasksByTitle(@PathVariable UUID user_id){
         return ResponseEntity.ok().body(findTaskByIdUseCase.findByUser(user_id));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TaskResponseDTO> updateTask(@PathVariable UUID id, @RequestBody TaskRequestDTO taskRequestDTO){
+        return ResponseEntity.ok().body(updateTaskUseCase.updateTask(taskRequestDTO, id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteTaskById(@PathVariable UUID id){
+        deleteTaskUseCase.deleteTaskById(id);
+        return ResponseEntity.ok().body("Task deleted sucessfully!");
+    }
 }
