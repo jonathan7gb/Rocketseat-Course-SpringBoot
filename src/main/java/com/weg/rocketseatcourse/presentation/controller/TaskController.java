@@ -50,4 +50,9 @@ public class TaskController {
     public ResponseEntity<TaskResponseDTO> findTaskById(@PathVariable UUID id){
         return ResponseEntity.ok().body(findTaskByIdUseCase.findTaskByID(id));
     }
+
+    @GetMapping("/searchbytitle/{title}")
+    public ResponseEntity<List<TaskResponseDTO>> findTasksByTitle(@PathVariable String title){
+        return ResponseEntity.ok().body(findTaskByIdUseCase.findByTitle(title));
+    }
 }
