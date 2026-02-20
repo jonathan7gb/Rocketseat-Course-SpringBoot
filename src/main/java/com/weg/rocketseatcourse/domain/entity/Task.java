@@ -42,7 +42,7 @@ public class Task {
     private LocalDateTime createdAt;
 
 
-    public Task(String title, String description, LocalDateTime startAt, LocalDateTime endAt, String priority, User user) {
+    public Task(String title, String description, LocalDateTime startAt, LocalDateTime endAt, TaskPriority priority, User user) {
         this.title = title;
         this.description = description;
         this.startAt = startAt;
@@ -51,7 +51,7 @@ public class Task {
         this.user = user;
     }
 
-    public Task(String title, String description, LocalDateTime startAt, LocalDateTime endAt, String priority) {
+    public Task(String title, String description, LocalDateTime startAt, LocalDateTime endAt, TaskPriority priority) {
         this.title = title;
         this.description = description;
         this.startAt = startAt;
@@ -59,7 +59,7 @@ public class Task {
         this.priority = priority;
     }
 
-    public Task(String title, String description, String priority, User user) {
+    public Task(String title, String description, TaskPriority priority, User user) {
         this.title = title;
         this.description = description;
         this.priority = priority;
