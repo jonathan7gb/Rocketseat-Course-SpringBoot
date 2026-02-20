@@ -1,4 +1,4 @@
-package com.weg.rocketseatcourse.application.exceptions.exceptionconfig;
+package com.weg.rocketseatcourse.application.exceptions.config;
 
 import com.weg.rocketseatcourse.application.exceptions.*;
 import org.springframework.http.HttpStatus;
