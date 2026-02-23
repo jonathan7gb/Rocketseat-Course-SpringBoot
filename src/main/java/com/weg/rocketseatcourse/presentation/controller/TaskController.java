@@ -63,7 +63,7 @@ public class TaskController {
     }
 
     @GetMapping("/searchbypriority/{priority}")
-    public ResponseEntity<List<TaskResponseDTO>> findTasksByTitle(@PathVariable TaskPriority priority){
+    public ResponseEntity<List<TaskResponseDTO>> findTasksByPriority(@PathVariable TaskPriority priority){
         return ResponseEntity.ok().body(findTaskByIdUseCase.findByPriority(priority));
     }
 

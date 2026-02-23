@@ -2,9 +2,7 @@ package com.weg.rocketseatcourse.application.mapper;
 
 import com.weg.rocketseatcourse.application.dto.task.TaskRequestDTO;
 import com.weg.rocketseatcourse.application.dto.task.TaskResponseDTO;
-import com.weg.rocketseatcourse.application.dto.user.UserResponseDTO;
 import com.weg.rocketseatcourse.domain.entity.Task;
-import com.weg.rocketseatcourse.domain.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
