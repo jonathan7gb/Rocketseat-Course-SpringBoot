@@ -11,9 +11,10 @@ Projeto desenvolvido no curso da Rocketseat sobre Spring Boot, implementando uma
 | 👥 Listar Usuários | ✅ Completo | GET /users |
 | 🔍 Buscar Usuário por ID | ✅ Completo | GET /users/{id} |
 | 📧 Buscar Usuário por Email | ✅ Completo | GET /users/email/{email} |
+| 🔎 Buscar Usuário por Nome | ✅ Completo | GET /users/searchbyname/{name} |
 | ✏️ Atualizar Usuário | ✅ Completo | PUT /users/{id} |
 | 🗑️ Deletar Usuário | ✅ Completo | DELETE /users/{id} |
-| 📝 CRUD de Tasks | ✅ Completo | POST, GET, PUT, DELETE + filtros |
+| 📝 CRUD de Tasks | ✅ Completo | POST, GET, PUT, DELETE + filtros + start/end |
 | 🔐 Criptografia BCrypt | ✅ Completo | Senhas protegidas |
 | ✔️ Validações | ✅ Completo | Bean Validation nos DTOs |
 | ⚠️ Exception Handling | ✅ Completo | 8 exceções customizadas |
@@ -228,6 +229,11 @@ curl -X POST http://localhost:8080/users \
   GET http://localhost:8080/users/email/{email}
   ```
 
+- **GET /users/searchbyname/{name}** - Buscar usuários por nome
+  ```
+  GET http://localhost:8080/users/searchbyname/{name}
+  ```
+
 - **PUT /users/{id}** - Atualizar usuário
   ```json
   {
@@ -264,6 +270,8 @@ curl -X POST http://localhost:8080/users \
 - **GET /tasks/searchbypriority/{priority}** - Buscar tarefas por prioridade
 - **PUT /tasks/{id}** - Atualizar tarefa
 - **DELETE /tasks/{id}** - Deletar tarefa
+- **PUT /tasks/starttask/{id}** - Iniciar tarefa (define startAt com timestamp atual)
+- **PUT /tasks/endtask/{id}** - Finalizar tarefa (define endAt com timestamp atual)
 
 ### Estrutura de Dados
 
@@ -318,12 +326,13 @@ Este projeto demonstra a implementação de:
 - **Spring Data JPA** - Persistência com MySQL
 - **Exception Handling** - GlobalExceptionHandler com 8 exceções customizadas
 - **Dependency Injection** - Injeção por construtor em todas as classes
-- **CRUD Completo de Users** - Todos os 6 endpoints REST funcionais
-- **CRUD Completo de Tasks** - 8 endpoints REST funcionais:
+- **CRUD Completo de Users** - Todos os 7 endpoints REST funcionais
+- **CRUD Completo de Tasks** - 10 endpoints REST funcionais:
   - POST /tasks, GET /tasks, GET /tasks/{id}
   - GET /tasks/searchbytitle/{title}, GET /tasks/searchbyuser/{user_id}
   - GET /tasks/searchbypriority/{priority}
   - PUT /tasks/{id}, DELETE /tasks/{id}
+  - PUT /tasks/starttask/{id}, PUT /tasks/endtask/{id}
 
 ### ❌ Não Implementado
 - Autenticação com JWT
@@ -351,15 +360,16 @@ Este projeto demonstra a implementação de:
 - ✅ Sistema de exceções customizadas (8 exceções)
 - ✅ GlobalExceptionHandler implementado
 - ✅ Configuração de segurança com BCrypt
-- ✅ **CRUD de User COMPLETO (6/6 endpoints)**:
+- ✅ **CRUD de User COMPLETO (7/7 endpoints)**:
   - ✅ POST /users - Criar usuário
   - ✅ GET /users - Listar todos
   - ✅ GET /users/{id} - Buscar por ID
   - ✅ GET /users/email/{email} - Buscar por email
+  - ✅ GET /users/searchbyname/{name} - Buscar por nome
   - ✅ PUT /users/{id} - Atualizar usuário
   - ✅ DELETE /users/{id} - Deletar usuário
 - ✅ Todos os 5 Use Cases de User implementados com lógica completa
-- ✅ **CRUD de Task COMPLETO (8 endpoints)**:
+- ✅ **CRUD de Task COMPLETO (10 endpoints)**:
   - ✅ POST /tasks - Criar tarefa
   - ✅ GET /tasks - Listar todas
   - ✅ GET /tasks/{id} - Buscar por ID
@@ -368,6 +378,8 @@ Este projeto demonstra a implementação de:
   - ✅ GET /tasks/searchbypriority/{priority} - Buscar por prioridade
   - ✅ PUT /tasks/{id} - Atualizar tarefa
   - ✅ DELETE /tasks/{id} - Deletar tarefa
+  - ✅ PUT /tasks/starttask/{id} - Iniciar tarefa
+  - ✅ PUT /tasks/endtask/{id} - Finalizar tarefa
 - ✅ Todos os 5 Use Cases de Task implementados com lógica completa
 - ❌ Autenticação JWT pendente
 - ❌ Testes unitários pendentes
