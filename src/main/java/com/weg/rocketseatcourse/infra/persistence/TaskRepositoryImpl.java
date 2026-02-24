@@ -54,4 +54,9 @@ public class TaskRepositoryImpl implements TaskRepository {
     public List<Task> findByPriority(TaskPriority priority) {
         return taskJpaRepository.findAllByPriority(priority);
     }
+
+    @Override
+    public boolean existsByUserId(UUID userId){
+        return taskJpaRepository.existsByUserId(userId);
+    }
 }

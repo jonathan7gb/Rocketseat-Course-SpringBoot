@@ -54,6 +54,11 @@ public class GlobalExceptionHandler{
         return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(UserCantBeDeleted.class)
+    public ResponseEntity<ErrorResponse> handleUserDelete(UserCantBeDeleted ex){
+        return buildError(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     @ExceptionHandler(UserCantBeNullException.class)
     public ResponseEntity<ErrorResponse> handleUserNull(UserCantBeNullException ex){
         return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());

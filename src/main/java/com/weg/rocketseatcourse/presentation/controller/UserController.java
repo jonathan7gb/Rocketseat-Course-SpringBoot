@@ -67,9 +67,9 @@ import java.util.UUID;
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUserById(@PathVariable UUID id){
+    public ResponseEntity<Void> deleteUserById(@PathVariable UUID id){
         deleteUserUseCase.deleteUserById(id);
-        return ResponseEntity.ok().body("User deleted sucessfully!");
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/searchbyname/{name}")

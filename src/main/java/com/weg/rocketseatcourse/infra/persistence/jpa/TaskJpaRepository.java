@@ -17,5 +17,7 @@ public interface TaskJpaRepository extends JpaRepository<Task, UUID> {
 
     List<Task> findAllByPriority(TaskPriority priority);
 
+    boolean existsByUserId(UUID userId);
+
 
 }
