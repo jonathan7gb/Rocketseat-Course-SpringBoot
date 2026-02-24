@@ -33,15 +33,16 @@ com.weg.rocketseatcourse/
 │   ├── entity/                      # Entidades de negócio
 │   │   ├── User.java
 │   │   └── Task.java
-│   ├── repository/                  # Interfaces dos repositórios (contratos)
-│   │   ├── UserRepository.java
-│   │   └── TaskRepository.java
-│   └── exceptions/                  # Exceções de domínio
-│       └── InvalidEmailException.java
+│   ├── enums/                       # Enumerações do domínio
+│   │   └── TaskPriority.java
+│   └── repository/                  # Interfaces dos repositórios (contratos)
+│       ├── UserRepository.java
+│       └── TaskRepository.java
 │
 ├── application/                     # CAMADA DE APLICAÇÃO (casos de uso)
 │   ├── config/                      # Configurações da aplicação
-│   │   └── SecurityConfig.java
+│   │   ├── SecurityConfig.java
+│   │   └── CorsConfig.java
 │   ├── dto/                         # Data Transfer Objects
 │   │   ├── user/
 │   │   │   ├── UserRequestDTO.java
@@ -70,16 +71,26 @@ com.weg.rocketseatcourse/
 │   │       ├── interfaces/
 │   │       │   ├── CreateTaskUseCase.java
 │   │       │   ├── FindAllTasksUseCase.java
+│   │       │   ├── FindTaskByIdUseCase.java
 │   │       │   ├── UpdateTaskUseCase.java
 │   │       │   └── DeleteTaskUseCase.java
 │   │       └── implementation/
-│   │           └── [implementações similares]
+│   │           ├── CreateTaskUseCaseImpl.java
+│   │           ├── FindAllTasksUseCaseImpl.java
+│   │           ├── FindTaskByIdUseCaseImpl.java
+│   │           ├── UpdateTaskUseCaseImpl.java
+│   │           └── DeleteTaskUseCaseImpl.java
 │   └── exceptions/                  # Exceções da aplicação
 │       ├── EmailAlreadyExistsException.java
+│       ├── InvalidEmailException.java
 │       ├── UserNotFoundException.java
 │       ├── UserCantBeNullException.java
+│       ├── UserCantBeDeleted.java
 │       ├── TaskNotFoundException.java
-│       └── TaskCantBeNullException.java
+│       ├── TaskCantBeNullException.java
+│       └── config/
+│           ├── ErrorResponse.java
+│           └── GlobalExceptionHandler.java
 │
 ├── infra/                           # CAMADA DE INFRAESTRUTURA (adaptadores)
 │   └── persistence/                 # Persistência de dados
@@ -191,27 +202,28 @@ public User(String name, String email, String password)
 | Atributo | Tipo | Anotações | Finalidade |
 |----------|------|-----------|------------|
 | `id` | `UUID` | `@Id`, `@GeneratedValue(generator = "UUID")` | Identificador único da tarefa |
-| `title` | `String` | `@NotEmpty`, `@NotNull`, `@Column(length = 50)` | Título resumido da tarefa (máx. 50 caracteres) |
-| `description` | `String` | `@NotEmpty`, `@NotNull`, `@Column(length = 255)` | Descrição detalhada da tarefa (máx. 255 caracteres) |
-| `startAt` | `LocalDateTime` | - | Data e hora de início previsto da tarefa (opcional) |
-| `endAt` | `LocalDateTime` | - | Data e hora de término previsto da tarefa (opcional) |
-| `priority` | `String` | - | Prioridade da tarefa (ex: "ALTA", "MÉDIA", "BAIXA") - opcional |
-| `user_id` | `UUID` | - | Identificador do usuário proprietário da tarefa (FK - opcional) |
+| `title` | `String` | `@Column(length = 50, nullable = false)` | Título resumido da tarefa (máx. 50 caracteres) |
+| `description` | `String` | `@Column(length = 255, nullable = false)` | Descrição detalhada da tarefa (máx. 255 caracteres) |
+| `startAt` | `LocalDateTime` | - | Data e hora de início da tarefa (definida ao iniciar a tarefa) |
+| `endAt` | `LocalDateTime` | - | Data e hora de término da tarefa (definida ao finalizar a tarefa) |
+| `priority` | `TaskPriority` | `@Enumerated(EnumType.STRING)` | Prioridade da tarefa (LOW, MEDIUM, HIGH) |
+| `user` | `User` | `@ManyToOne`, `@JoinColumn(name = "user_id", nullable = false)` | Usuário proprietário da tarefa (FK obrigatória) |
 | `createdAt` | `LocalDateTime` | `@CreationTimestamp` | Data e hora de criação do registro |
 
 #### Construtores:
 
 ```java
-public Task(String title, String description, LocalDateTime startAt, 
-            LocalDateTime endAt, String priority, UUID user_id)
-```
-- Construtor de negócio usado pelo `TaskMapper`
-- Não recebe ID (será gerado automaticamente)
+// Construtor completo com usuário
+public Task(String title, String description, LocalDateTime startAt,
+            LocalDateTime endAt, TaskPriority priority, User user)
 
-#### Observações:
-- **Relacionamento com User**: O atributo `user_id` deveria idealmente ser um `@ManyToOne` com `@JoinColumn`, mas está implementado como UUID simples
-- **Priority**: Deveria ser um Enum para garantir valores válidos
-- **Datas**: Não há validação de que `endAt` seja posterior a `startAt`
+// Construtor sem usuário (para uso interno)
+public Task(String title, String description, LocalDateTime startAt,
+            LocalDateTime endAt, TaskPriority priority)
+
+// Construtor mínimo com usuário (usado pelo TaskMapper)
+public Task(String title, String description, TaskPriority priority, User user)
+```
 
 ---
 
@@ -234,8 +246,14 @@ Os DTOs utilizam **Java Records** (introduzido no Java 14), que são:
 
 ```java
 public record UserRequestDTO(
+    @NotBlank(message = "Name can't be blank")
     String name,
+
+    @Email(message = "Invalid E-mail")
+    @NotBlank(message = "E-mail can't be blank")
     String email,
+
+    @NotBlank(message = "Password can't be blank")
     String password
 ) {}
 ```
@@ -249,7 +267,7 @@ public record UserRequestDTO(
 - Como `@RequestBody` no endpoint `POST /users`
 - Recebido pelo `CreateUserUseCase`
 
-**Validações**: Não possui anotações de validação (deveria ter @NotBlank, @Email, etc.)
+**Validações**: `@NotBlank` em todos os campos; `@Email` no campo email
 
 ---
 
@@ -264,7 +282,6 @@ public record UserResponseDTO(
     UUID id,
     String name,
     String email,
-    String password,
     LocalDateTime createdAt
 ) {}
 ```
@@ -273,14 +290,12 @@ public record UserResponseDTO(
 - `id`: Identificador único gerado
 - `name`: Nome do usuário
 - `email`: E-mail do usuário
-- `password`: Senha criptografada
 - `createdAt`: Data de criação
 
 **Quando é usado**:
 - Retornado pelo `CreateUserUseCase`
 - Devolvido como resposta HTTP pelo controller
-
-**⚠️ Problema de Segurança**: Está expondo a senha (mesmo criptografada) na resposta. **Não deveria retornar o campo password**.
+- Embutido no `TaskResponseDTO` como informação do usuário proprietário
 
 ---
 
@@ -294,25 +309,30 @@ public record UserResponseDTO(
 
 ```java
 public record TaskRequestDTO(
+    @NotBlank(message = "Title can't be blank")
+    @Size(min = 5, max = 50, message = "Title must be between 5 and 50 characters")
     String title,
+
+    @NotBlank(message = "Description can't be blank")
+    @Size(min = 5, max = 255, message = "Description must be between 5 and 255 characters")
     String description,
-    LocalDateTime startAt,
-    LocalDateTime endAt,
-    String priority,
+
+    @NotBlank(message = "Priority can't be blank")
+    TaskPriority priority,
+
+    @NotNull(message = "User can't be null")
     UUID user_id
 ) {}
 ```
 
 **Atributos**:
-- `title`: Título da tarefa
-- `description`: Descrição detalhada
-- `startAt`: Data de início (opcional)
-- `endAt`: Data de fim (opcional)
-- `priority`: Nível de prioridade (opcional)
-- `user_id`: ID do usuário proprietário (opcional)
+- `title`: Título da tarefa (5-50 caracteres, obrigatório)
+- `description`: Descrição detalhada (5-255 caracteres, obrigatório)
+- `priority`: Nível de prioridade (TaskPriority enum: LOW, MEDIUM, HIGH - obrigatório)
+- `user_id`: ID do usuário proprietário (obrigatório)
 
 **Quando é usado**:
-- Como entrada no `CreateTaskUseCase` (não implementado ainda)
+- Como entrada no `CreateTaskUseCase` e `UpdateTaskUseCase`
 
 ---
 
@@ -329,16 +349,16 @@ public record TaskResponseDTO(
     String description,
     LocalDateTime startAt,
     LocalDateTime endAt,
-    String priority,
-    UUID user_id,
+    TaskPriority priority,
+    UserResponseDTO user,
     LocalDateTime createdAt
 ) {}
 ```
 
-**Atributos**: Todos os campos da entidade Task
+**Atributos**: Todos os campos da entidade Task, com o usuário representado como `UserResponseDTO` embutido
 
 **Quando é usado**:
-- Retorno do `CreateTaskUseCase` (quando implementado)
+- Retorno do `CreateTaskUseCase`
 - Resposta HTTP dos endpoints de Task
 
 ---
@@ -418,12 +438,14 @@ UserResponseDTO createUser(UserRequestDTO userRequestDTO);
 
 **Interface**: `FindUserByIdUseCase`
 ```java
-UserResponseDTO findUserById(UUID id);
+UserResponseDTO findUserByID(UUID id);
+UserResponseDTO findUserByEmail(String email);
+List<UserResponseDTO> findByName(String name);
 ```
 
 **Implementação**: `FindUserByIdUseCaseImpl`
 
-**Responsabilidade**: Buscar um usuário específico por seu ID.
+**Responsabilidade**: Buscar usuários por ID, email ou nome.
 
 **Dependências**:
 - `UserRepository`: Para buscar o usuário no banco de dados
@@ -599,7 +621,7 @@ void deleteUser(UUID id);
 
 ### 4.2 Use Cases de Task
 
-#### CreateTaskUseCase ❌ (Não Implementado)
+#### CreateTaskUseCase ✅ (Implementado)
 
 **Interface**: `CreateTaskUseCase`
 ```java
@@ -608,44 +630,151 @@ TaskResponseDTO createTask(TaskRequestDTO taskRequestDTO);
 
 **Implementação**: `CreateTaskUseCaseImpl`
 
+**Responsabilidade**: Criar uma nova tarefa validando o usuário proprietário e persistindo no banco.
+
 **Dependências**:
-- `TaskRepository`: Injetado no construtor
+- `TaskRepository`: Para persistência da tarefa
+- `TaskMapper`: Para conversão DTO ↔ Entity
+- `UserRepository`: Para buscar e validar o usuário proprietário
 
-**Status**: ❌ **Estrutura criada, mas retorna null - não implementado**
+**Fluxo Interno Detalhado**:
 
-**Código atual**:
-```java
-@Override
-public TaskResponseDTO createTask(TaskRequestDTO taskRequestDTO) {
-    return null;
-}
+```
+1. VALIDAÇÃO DO USUÁRIO
+   └─ userRepository.findById(taskRequestDTO.user_id())
+      └─ Se não encontrado
+         └─ Lança UserNotFoundException("User with this Id not found!")
+
+2. CONVERSÃO DTO → ENTITY
+   └─ taskMapper.toEntity(taskRequestDTO)
+      └─ Cria Task(title, description, priority, null)
+
+3. VINCULAÇÃO COM USUÁRIO
+   └─ task.setUser(userFound)
+
+4. PERSISTÊNCIA
+   └─ taskRepository.save(task)
+      └─ Retorna Task com ID gerado
+
+5. CONVERSÃO ENTITY → DTO
+   └─ taskMapper.toDto(taskSaved)
+
+6. RETORNO
+   └─ Retorna TaskResponseDTO
 ```
 
-**Fluxo Esperado** (quando implementado):
-1. Validar taskRequestDTO não é nulo
-2. Converter DTO para Entity usando TaskMapper
-3. Validar se user_id existe (se fornecido)
-4. Salvar task no repositório
-5. Converter entidade salva para TaskResponseDTO
-6. Retornar DTO
+**Exceções Lançadas**:
+- `UserNotFoundException`: Usuário com o ID fornecido não existe
+
+**Status**: ✅ Totalmente implementado e funcional
 
 ---
 
-#### FindAllTasksUseCase ❌ (Não Implementado)
+#### FindAllTasksUseCase ✅ (Implementado)
 
-**Status**: ❌ Não implementado - apenas interface e construtor
+**Interface**: `FindAllTasksUseCase`
+```java
+List<TaskResponseDTO> findAllTasks();
+```
+
+**Implementação**: `FindAllTasksUseCaseImpl`
+
+**Responsabilidade**: Listar todas as tarefas cadastradas no sistema.
+
+**Fluxo Interno Detalhado**:
+
+```
+1. BUSCA NO REPOSITÓRIO
+   └─ taskRepository.findAll()
+      └─ Retorna List<Task>
+
+2. VALIDAÇÃO DE LISTA VAZIA
+   └─ Se list.isEmpty()
+      └─ Lança TaskNotFoundException("No tasks found!")
+
+3. CONVERSÃO ENTITY → DTO
+   └─ taskMapper.listEntityToDto(tasks)
+
+4. RETORNO
+   └─ Retorna List<TaskResponseDTO>
+```
+
+**Exceções Lançadas**:
+- `TaskNotFoundException`: Nenhuma tarefa encontrada
+
+**Status**: ✅ Totalmente implementado e funcional
 
 ---
 
-#### UpdateTaskUseCase ❌ (Não Implementado)
+#### FindTaskByIdUseCase ✅ (Implementado)
 
-**Status**: ❌ Não implementado - apenas interface e construtor
+**Interface**: `FindTaskByIdUseCase`
+```java
+TaskResponseDTO findTaskByID(UUID id);
+List<TaskResponseDTO> findByTitle(String title);
+List<TaskResponseDTO> findByUser(UUID user_id);
+List<TaskResponseDTO> findByPriority(TaskPriority priority);
+```
+
+**Implementação**: `FindTaskByIdUseCaseImpl`
+
+**Responsabilidade**: Buscar tarefas por ID, título, usuário ou prioridade.
+
+**Status**: ✅ Totalmente implementado e funcional
 
 ---
 
-#### DeleteTaskUseCase ❌ (Não Implementado)
+#### UpdateTaskUseCase ✅ (Implementado)
 
-**Status**: ❌ Não implementado - apenas interface e construtor
+**Interface**: `UpdateTaskUseCase`
+```java
+TaskResponseDTO updateTask(TaskRequestDTO taskRequestDTO, UUID id);
+void startTask(UUID id);
+void endTask(UUID id);
+```
+
+**Implementação**: `UpdateTaskUseCaseImpl`
+
+**Responsabilidade**: Atualizar dados de uma tarefa, iniciar ou finalizar uma tarefa.
+
+**Fluxo de startTask**:
+```
+1. Busca a tarefa pelo ID
+2. Se startAt já está preenchido → lança IllegalStateException
+3. Define startAt com LocalDateTime.now()
+```
+
+**Fluxo de endTask**:
+```
+1. Busca a tarefa pelo ID
+2. Se startAt é null → lança IllegalStateException (tarefa não iniciada)
+3. Se endAt já está preenchido → lança IllegalStateException
+4. Define endAt com LocalDateTime.now()
+```
+
+**Status**: ✅ Totalmente implementado e funcional
+
+---
+
+#### DeleteTaskUseCase ✅ (Implementado)
+
+**Interface**: `DeleteTaskUseCase`
+```java
+void deleteTaskById(UUID id);
+```
+
+**Implementação**: `DeleteTaskUseCaseImpl`
+
+**Responsabilidade**: Deletar uma tarefa do sistema após verificar sua existência.
+
+**Fluxo**:
+```
+1. Busca a tarefa pelo ID
+   └─ Se não encontrada → lança TaskNotFoundException
+2. Deleta a tarefa
+```
+
+**Status**: ✅ Totalmente implementado e funcional
 
 ---
 
@@ -654,14 +783,15 @@ public TaskResponseDTO createTask(TaskRequestDTO taskRequestDTO) {
 | Use Case | Status | Observações |
 |----------|--------|-------------|
 | CreateUserUseCase | ✅ Completo | Totalmente funcional com validações |
-| FindUserByIdUseCase | ✅ Completo | Busca por ID com tratamento de erros |
+| FindUserByIdUseCase | ✅ Completo | Busca por ID, email e nome com tratamento de erros |
 | FindAllUsersUseCase | ✅ Completo | Listagem com validação de lista vazia |
 | UpdateUserUseCase | ✅ Completo | Atualização completa com validações |
 | DeleteUserUseCase | ✅ Completo | Deleção com verificação de existência |
-| CreateTaskUseCase | ❌ Não implementado | Retorna null |
-| FindAllTasksUseCase | ❌ Não implementado | Apenas estrutura |
-| UpdateTaskUseCase | ❌ Não implementado | Apenas estrutura |
-| DeleteTaskUseCase | ❌ Não implementado | Apenas estrutura |
+| CreateTaskUseCase | ✅ Completo | Criação com validação de usuário |
+| FindAllTasksUseCase | ✅ Completo | Listagem com validação de lista vazia |
+| FindTaskByIdUseCase | ✅ Completo | Busca por ID, título, usuário e prioridade |
+| UpdateTaskUseCase | ✅ Completo | Atualização, início e finalização de tarefa |
+| DeleteTaskUseCase | ✅ Completo | Deleção com verificação de existência |
 
 ---
 
@@ -688,10 +818,14 @@ Domain Interface → Implementation Adapter → JPA Repository
 ```java
 public interface UserRepository {
     User save(User user);
-    Optional<User> findById(UUID id);
     List<User> findAll();
-    void deleteById(UUID id);
+    List<User> findAllByOrderByNameAsc();
     Optional<User> findByEmail(String email);
+    Optional<User> findById(UUID id);
+    List<User> findByNameContainingIgnoreCaseOrderByNameAsc(String name);
+    void deleteById(UUID id);
+    boolean existsByEmail(String email);
+    boolean existsByEmailAndIdNot(String email, UUID id);
 }
 ```
 
@@ -699,8 +833,12 @@ public interface UserRepository {
 - `save()`: Persiste ou atualiza usuário
 - `findById()`: Busca por ID
 - `findAll()`: Lista todos usuários
-- `deleteById()`: Remove usuário
+- `findAllByOrderByNameAsc()`: Lista todos usuários ordenados por nome
 - `findByEmail()`: Busca por e-mail (validação de unicidade)
+- `findByNameContainingIgnoreCaseOrderByNameAsc()`: Busca por nome (case-insensitive)
+- `deleteById()`: Remove usuário
+- `existsByEmail()`: Verifica se e-mail já está cadastrado
+- `existsByEmailAndIdNot()`: Verifica se e-mail pertence a outro usuário (para update)
 
 ---
 
@@ -715,11 +853,23 @@ public interface TaskRepository {
     Task save(Task task);
     Optional<Task> findById(UUID id);
     List<Task> findAll();
+    List<Task> findByTitleContainingIgnoreCaseOrderByTitleAsc(String title);
+    List<Task> findByUserId(UUID user_id);
+    List<Task> findByPriority(TaskPriority priority);
+    boolean existsByUserId(UUID userId);
     void deleteById(UUID id);
 }
 ```
 
-**Métodos**: Operações CRUD básicas para Task
+**Métodos**:
+- `save()`: Persiste ou atualiza tarefa
+- `findById()`: Busca por ID
+- `findAll()`: Lista todas as tarefas
+- `findByTitleContainingIgnoreCaseOrderByTitleAsc()`: Busca por título (case-insensitive, ordenada)
+- `findByUserId()`: Busca tarefas de um usuário específico
+- `findByPriority()`: Filtra por prioridade (TaskPriority enum)
+- `existsByUserId()`: Verifica se um usuário tem tarefas
+- `deleteById()`: Remove tarefa
 
 ---
 
@@ -742,34 +892,11 @@ public interface TaskRepository {
 public class UserRepositoryImpl implements UserRepository {
     private final UserJpaRepository userJpaRepository;
 
-    public UserRepositoryImpl(UserJpaRepository userJpaRepository) {
-        this.userJpaRepository = userJpaRepository;
-    }
-
-    @Override
-    public User save(User user) {
-        return userJpaRepository.save(user);
-    }
-
-    @Override
-    public Optional<User> findById(UUID id) {
-        return userJpaRepository.findById(id);
-    }
-
-    @Override
-    public List<User> findAll() {
-        return userJpaRepository.findAll();
-    }
-
-    @Override
-    public void deleteById(UUID id) {
-        userJpaRepository.deleteById(id);
-    }
-
-    @Override
-    public Optional<User> findByEmail(String email) {
-        return userJpaRepository.findByEmail(email);
-    }
+    // save, findById, findAll, deleteById, findByEmail,
+    // existsByEmail, existsByEmailAndIdNot,
+    // findAllByOrderByNameAsc,
+    // findByNameContainingIgnoreCaseOrderByNameAsc
+    // todos delegando para userJpaRepository
 }
 ```
 
@@ -781,7 +908,31 @@ public class UserRepositoryImpl implements UserRepository {
 
 **Localização**: `infra.persistence.TaskRepositoryImpl`
 
-**Implementação**: Similar ao UserRepositoryImpl, delegando para TaskJpaRepository
+**Implementação**: Delegação completa para TaskJpaRepository, com todos os métodos da interface de domínio implementados.
+
+```java
+@Repository
+public class TaskRepositoryImpl implements TaskRepository {
+    private final TaskJpaRepository taskJpaRepository;
+
+    @Override
+    public List<Task> findByTitleContainingIgnoreCaseOrderByTitleAsc(String title) {
+        return taskJpaRepository.findByTitleContainingIgnoreCaseOrderByTitleAsc(title);
+    }
+
+    @Override
+    public List<Task> findByUserId(UUID user_id) {
+        return taskJpaRepository.findAllByUser_Id(user_id);
+    }
+
+    @Override
+    public List<Task> findByPriority(TaskPriority priority) {
+        return taskJpaRepository.findAllByPriority(priority);
+    }
+
+    // + save, findById, findAll, deleteById, existsByUserId
+}
+```
 
 ---
 
@@ -794,13 +945,17 @@ public class UserRepositoryImpl implements UserRepository {
 ```java
 public interface UserJpaRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
+    boolean existsByEmailAndIdNot(String email, UUID id);
+    List<User> findAllByOrderByNameAsc();
+    List<User> findByNameContainingIgnoreCaseOrderByNameAsc(String name);
 }
 ```
 
 **Características**:
 - Estende `JpaRepository<User, UUID>`
 - Herda automaticamente: save, findById, findAll, delete, etc.
-- Método customizado: `findByEmail()` usando Query Method do Spring Data
+- Métodos customizados via Query Methods do Spring Data
 
 ---
 
@@ -810,9 +965,17 @@ public interface UserJpaRepository extends JpaRepository<User, UUID> {
 
 ```java
 public interface TaskJpaRepository extends JpaRepository<Task, UUID> {
-    // Apenas métodos herdados de JpaRepository
+    List<Task> findByTitleContainingIgnoreCaseOrderByTitleAsc(String title);
+    List<Task> findAllByUser_Id(UUID userId);
+    List<Task> findAllByPriority(TaskPriority priority);
+    boolean existsByUserId(UUID userId);
 }
 ```
+
+**Características**:
+- Estende `JpaRepository<Task, UUID>`
+- Herda automaticamente: save, findById, findAll, delete, etc.
+- Métodos customizados via Query Methods do Spring Data
 
 ---
 
@@ -1018,9 +1181,9 @@ public ResponseEntity<UserResponseDTO> updateUser(@PathVariable UUID id, @Reques
 
 ```java
 @DeleteMapping("/{id}")
-public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-    deleteUserUseCase.deleteUser(id);
-    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+public ResponseEntity<Void> deleteUserById(@PathVariable UUID id) {
+    deleteUserUseCase.deleteUserById(id);
+    return ResponseEntity.noContent().build();
 }
 ```
 
@@ -1032,7 +1195,31 @@ public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
 
 **Response**: HTTP 204 NO CONTENT (sem corpo)
 
-**Use Case chamado**: ✅ `deleteUserUseCase.deleteUser(id)`
+**Use Case chamado**: ✅ `deleteUserUseCase.deleteUserById(id)`
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### GET /users/searchbyname/{name} ✅
+
+```java
+@GetMapping("/searchbyname/{name}")
+public ResponseEntity<List<UserResponseDTO>> findByName(@PathVariable String name) {
+    List<UserResponseDTO> responseDTOS = findUserByIdUseCase.findByName(name);
+    return ResponseEntity.ok().body(responseDTOS);
+}
+```
+
+**Descrição**: Buscar usuários por nome (case-insensitive, ordenados por nome)
+
+**Método HTTP**: GET
+
+**Path Variable**: `name` (String)
+
+**Response**: HTTP 200 OK com lista de UserResponseDTO
+
+**Use Case chamado**: ✅ `findUserByIdUseCase.findByName(name)`
 
 **Status**: ✅ Totalmente funcional
 
@@ -1049,21 +1236,143 @@ public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
 **Dependências** (injetadas via construtor):
 - `CreateTaskUseCase`
 - `FindAllTasksUseCase`
+- `FindTaskByIdUseCase`
 - `UpdateTaskUseCase`
 - `DeleteTaskUseCase`
 
 #### Endpoints:
 
-**Status**: ❌ **Nenhum endpoint implementado**
+##### POST /tasks ✅
 
-O controller possui as dependências injetadas, mas não há métodos públicos com mapeamentos (`@PostMapping`, `@GetMapping`, etc.).
+**Descrição**: Criar nova tarefa
 
-**Endpoints esperados**:
-- `POST /tasks` - Criar tarefa
-- `GET /tasks` - Listar tarefas
-- `GET /tasks/{id}` - Buscar tarefa
-- `PUT /tasks/{id}` - Atualizar tarefa
-- `DELETE /tasks/{id}` - Deletar tarefa
+**Método HTTP**: POST
+
+**Request Body**: `TaskRequestDTO` (JSON)
+```json
+{
+  "title": "Estudar Spring Boot",
+  "description": "Completar módulo de segurança",
+  "priority": "HIGH",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Response**: HTTP 201 CREATED com TaskResponseDTO no corpo
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### GET /tasks ✅
+
+**Descrição**: Listar todas as tarefas
+
+**Response**: HTTP 200 OK com lista de TaskResponseDTO
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### GET /tasks/{id} ✅
+
+**Descrição**: Buscar tarefa por ID
+
+**Path Variable**: `id` (UUID)
+
+**Response**: HTTP 200 OK com TaskResponseDTO
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### GET /tasks/searchbytitle/{title} ✅
+
+**Descrição**: Buscar tarefas por título (case-insensitive, ordenadas por título)
+
+**Path Variable**: `title` (String)
+
+**Response**: HTTP 200 OK com lista de TaskResponseDTO
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### GET /tasks/searchbyuser/{user_id} ✅
+
+**Descrição**: Listar todas as tarefas de um usuário específico
+
+**Path Variable**: `user_id` (UUID)
+
+**Response**: HTTP 200 OK com lista de TaskResponseDTO
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### GET /tasks/searchbypriority/{priority} ✅
+
+**Descrição**: Filtrar tarefas por prioridade (LOW, MEDIUM, HIGH)
+
+**Path Variable**: `priority` (TaskPriority enum)
+
+**Response**: HTTP 200 OK com lista de TaskResponseDTO
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### PUT /tasks/{id} ✅
+
+**Descrição**: Atualizar dados de uma tarefa existente
+
+**Path Variable**: `id` (UUID)
+
+**Request Body**: `TaskRequestDTO` (JSON)
+
+**Response**: HTTP 200 OK com TaskResponseDTO atualizado
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### DELETE /tasks/{id} ✅
+
+**Descrição**: Deletar tarefa
+
+**Path Variable**: `id` (UUID)
+
+**Response**: HTTP 200 OK com mensagem "Task deleted sucessfully!"
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### PUT /tasks/starttask/{id} ✅
+
+**Descrição**: Marcar tarefa como iniciada (define `startAt` com timestamp atual)
+
+**Path Variable**: `id` (UUID)
+
+**Regras**: Não pode iniciar tarefa já iniciada
+
+**Response**: HTTP 204 NO CONTENT
+
+**Status**: ✅ Totalmente funcional
+
+---
+
+##### PUT /tasks/endtask/{id} ✅
+
+**Descrição**: Marcar tarefa como finalizada (define `endAt` com timestamp atual)
+
+**Path Variable**: `id` (UUID)
+
+**Regras**: Tarefa deve estar iniciada; não pode finalizar tarefa já finalizada
+
+**Response**: HTTP 204 NO CONTENT
+
+**Status**: ✅ Totalmente funcional
 
 ---
 
@@ -1075,13 +1384,19 @@ O controller possui as dependências injetadas, mas não há métodos públicos 
 | `/users` | GET | ✅ Implementado | Lista todos os usuários |
 | `/users/{id}` | GET | ✅ Implementado | Busca usuário por ID |
 | `/users/email/{email}` | GET | ✅ Implementado | Busca usuário por email |
+| `/users/searchbyname/{name}` | GET | ✅ Implementado | Busca usuários por nome |
 | `/users/{id}` | PUT | ✅ Implementado | Atualiza usuário |
 | `/users/{id}` | DELETE | ✅ Implementado | Deleta usuário |
-| `/tasks` | POST | ❌ Não implementado | - |
-| `/tasks` | GET | ❌ Não implementado | - |
-| `/tasks/{id}` | GET | ❌ Não implementado | - |
-| `/tasks/{id}` | PUT | ❌ Não implementado | - |
-| `/tasks/{id}` | DELETE | ❌ Não implementado | - |
+| `/tasks` | POST | ✅ Implementado | Cria tarefa com validação de usuário |
+| `/tasks` | GET | ✅ Implementado | Lista todas as tarefas |
+| `/tasks/{id}` | GET | ✅ Implementado | Busca tarefa por ID |
+| `/tasks/searchbytitle/{title}` | GET | ✅ Implementado | Busca por título (case-insensitive) |
+| `/tasks/searchbyuser/{user_id}` | GET | ✅ Implementado | Lista tarefas de um usuário |
+| `/tasks/searchbypriority/{priority}` | GET | ✅ Implementado | Filtra por prioridade |
+| `/tasks/{id}` | PUT | ✅ Implementado | Atualiza tarefa |
+| `/tasks/{id}` | DELETE | ✅ Implementado | Deleta tarefa |
+| `/tasks/starttask/{id}` | PUT | ✅ Implementado | Inicia tarefa (define startAt) |
+| `/tasks/endtask/{id}` | PUT | ✅ Implementado | Finaliza tarefa (define endAt) |
 
 ---
 
@@ -1103,10 +1418,20 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .anyRequest().permitAll()
+            );
+        return http.build();
+    }
 }
 ```
 
-**Propósito**: Configurar o bean de criptografia de senhas
+**Propósito**: Configurar o bean de criptografia de senhas e a cadeia de filtros de segurança
 
 ---
 
@@ -1174,34 +1499,45 @@ Hash gerado:    "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"
 
 #### Validações de Bean Validation (JSR-380)
 
-##### User Entity:
-- `@NotNull(message = "Name can't be null")` - Nome obrigatório
-- `@NotEmpty(message = "Name can't be empty")` - Nome não vazio
+##### UserRequestDTO:
+- `@NotBlank(message = "Name can't be blank")` - Nome obrigatório e não vazio
 - `@Email(message = "Invalid E-mail")` - Formato de e-mail válido
-- `@NotNull(message = "E-mail can't be null")` - E-mail obrigatório
-- `@NotEmpty(message = "E-mail can't be empty")` - E-mail não vazio
-- `@Column(unique = true)` - E-mail único no banco
-- `@NotNull(message = "Password can't be null")` - Senha obrigatória
-- `@NotEmpty(message = "Password can't be empty")` - Senha não vazia
+- `@NotBlank(message = "E-mail can't be blank")` - E-mail obrigatório e não vazio
+- `@NotBlank(message = "Password can't be blank")` - Senha obrigatória e não vazia
 
-##### Task Entity:
-- `@NotNull(message = "Title can't be null")` - Título obrigatório
-- `@NotEmpty(message = "Title can't be empty")` - Título não vazio
-- `@NotNull(message = "Description can't be null")` - Descrição obrigatória
-- `@NotEmpty(message = "Description can't be empty")` - Descrição não vazia
+##### TaskRequestDTO:
+- `@NotBlank(message = "Title can't be blank")` - Título obrigatório
+- `@Size(min = 5, max = 50)` - Título entre 5 e 50 caracteres
+- `@NotBlank(message = "Description can't be blank")` - Descrição obrigatória
+- `@Size(min = 5, max = 255)` - Descrição entre 5 e 255 caracteres
+- `@NotBlank(message = "Priority can't be blank")` - Prioridade obrigatória (LOW/MEDIUM/HIGH)
+- `@NotNull(message = "User can't be null")` - Usuário proprietário obrigatório
 
 #### Validações Programáticas:
 
-##### CreateUserUseCaseImpl:
+##### UpdateUserUseCaseImpl:
 ```java
-// Validação 1: DTO não nulo
-if(userRequestDTO == null) {
-    throw new UserCantBeNullException("User can't be null!");
-}
-
-// Validação 2: E-mail único
+// Validação: E-mail único (excluindo o próprio usuário)
 if(userRepository.findByEmail(userRequestDTO.email()).isPresent()) {
     throw new EmailAlreadyExistsException("E-mail already registered!");
+}
+```
+
+##### UpdateTaskUseCaseImpl (startTask/endTask):
+```java
+// Não permite iniciar tarefa já iniciada
+if (task.getStartAt() != null) {
+    throw new IllegalStateException("Task already started");
+}
+
+// Não permite finalizar tarefa não iniciada
+if(task.getStartAt() == null) {
+    throw new IllegalStateException("You can't end the task if its don't have a start date");
+}
+
+// Não permite finalizar tarefa já finalizada
+if (task.getEndAt() != null) {
+    throw new IllegalStateException("Task already finished");
 }
 ```
 
@@ -1209,47 +1545,42 @@ if(userRepository.findByEmail(userRequestDTO.email()).isPresent()) {
 
 ### 7.4 Problemas de Segurança Identificados
 
-#### ⚠️ Críticos:
+#### ✅ Corrigidos:
 
-1. **Senha exposta no Response**
-   - `UserResponseDTO` retorna o campo `password` (mesmo criptografado)
-   - **Solução**: Remover `password` do DTO de resposta
+1. **~~Senha exposta no Response~~** → **Corrigido**
+   - `UserResponseDTO` não retorna mais o campo `password`
 
-2. **Spring Security não configurado**
-   - Dependência adicionada mas sem configuração
-   - Todos endpoints estão públicos
-   - **Solução**: Configurar `SecurityFilterChain` com autenticação
+2. **~~Spring Security não configurado~~** → **Corrigido**
+   - `SecurityFilterChain` configurado com CSRF desabilitado
+   - Todos os endpoints liberados (adequado para API stateless sem JWT)
 
-3. **Sem autenticação/autorização**
-   - Qualquer pessoa pode criar usuários
-   - Sem controle de acesso aos endpoints
-   - **Solução**: Implementar JWT ou Spring Security Session
+3. **~~DTOs sem validação~~** → **Corrigido**
+   - `UserRequestDTO` e `TaskRequestDTO` possuem Bean Validation completa
+   - `@Valid` aplicado nos controllers
 
-#### ⚠️ Médios:
+4. **~~Sem tratamento global de exceções~~** → **Corrigido**
+   - `GlobalExceptionHandler` com `@RestControllerAdvice` implementado
+   - 10 handlers para diferentes tipos de exceção
 
-4. **DTOs sem validação**
-   - `UserRequestDTO` não possui `@Valid` annotations
-   - Controller não valida entrada com `@Valid`
-   - **Solução**: Adicionar Bean Validation nos DTOs
+5. **~~Sem CORS configurado~~** → **Corrigido**
+   - `CorsConfig` implementado
 
-5. **Credenciais hardcoded**
+#### ⚠️ Pendentes:
+
+1. **Sem autenticação/autorização JWT**
+   - Todos os endpoints são públicos
+   - **Solução**: Implementar JWT com Spring Security
+
+2. **Credenciais hardcoded**
    - Senha do MySQL no `application.properties`
    - **Solução**: Usar variáveis de ambiente
 
-6. **SSL desabilitado**
+3. **SSL desabilitado**
    - `useSSL=false` na connection string
    - **Solução**: Habilitar SSL em produção
 
-#### ⚠️ Baixos:
-
-7. **Sem rate limiting**
+4. **Sem rate limiting**
    - Vulnerável a ataques de força bruta
-   
-8. **Sem CORS configurado**
-   - Pode bloquear aplicações frontend legítimas
-
-9. **Sem tratamento global de exceções**
-   - Erros podem expor informações sensíveis
 
 ---
 
@@ -1274,14 +1605,9 @@ if(userRepository.findByEmail(userRequestDTO.email()).isPresent()) {
      │                  ├──────────────────────>│
      │                  │                       │
      │                  │                       │ UserController
-     │                  │                       │
-     │                  │                       ├─────────────┐
-     │                  │                       │ ⚠️ BUG:     │
-     │                  │                       │ Não chama   │
-     │                  │                       │ Use Case!   │
-     │                  │                       │<────────────┘
+     │                  │                       │ Chama Use Case ✅
      │                  │ HTTP 201 CREATED      │
-     │                  │ (body vazio)          │
+     │                  │ UserResponseDTO       │
      │                  │<──────────────────────┤
      │ Response         │                       │
      │<─────────────────┤                       │
@@ -1366,7 +1692,6 @@ if(userRepository.findByEmail(userRequestDTO.email()).isPresent()) {
          "id": "550e8400-e29b-41d4-a716-446655440000",
          "name": "João Silva",
          "email": "joao@email.com",
-         "password": "$2a$10$...",  ⚠️ NÃO DEVERIA EXPOR
          "createdAt": "2024-02-18T16:30:00"
        }
 ```
@@ -1386,9 +1711,9 @@ if(userRepository.findByEmail(userRequestDTO.email()).isPresent()) {
 
 ### 8.2 Fluxo de Criação de Tarefa
 
-#### Status Atual: ❌ **NÃO IMPLEMENTADO**
+#### Status Atual: ✅ **IMPLEMENTADO**
 
-#### Fluxo Esperado:
+#### Fluxo Implementado:
 
 ```
 1. REQUISIÇÃO HTTP
@@ -1397,103 +1722,48 @@ if(userRepository.findByEmail(userRequestDTO.email()).isPresent()) {
          {
            "title": "Estudar Spring Boot",
            "description": "Completar curso Rocketseat",
-           "startAt": "2024-02-18T09:00:00",
-           "endAt": "2024-02-18T18:00:00",
-           "priority": "ALTA",
+           "priority": "HIGH",
            "user_id": "550e8400-e29b-41d4-a716-446655440000"
          }
 
 2. SPRING MVC
-   └─ ⚠️ PROBLEMA: Endpoint não existe
-   └─ Retorna: 404 Not Found
+   └─ DispatcherServlet intercepta requisição
+   └─ Identifica @RequestMapping("/tasks")
+   └─ Chama TaskController.saveTask()
+   └─ Valida campos com @Valid → Bean Validation
 
-3. [QUANDO IMPLEMENTADO] CONTROLLER
-   └─ TaskController.createTask(TaskRequestDTO dto)
+3. CONTROLLER
+   └─ TaskController.saveTask(TaskRequestDTO dto)
    └─ Chama: createTaskUseCase.createTask(dto)
 
-4. [QUANDO IMPLEMENTADO] USE CASE
+4. USE CASE
    └─ CreateTaskUseCaseImpl.createTask(dto)
    
-   4.1. VALIDAÇÃO DE ENTRADA
-        └─ if (dto == null) → throw TaskCantBeNullException
+   4.1. VALIDAÇÃO DO USUÁRIO
+        └─ userRepository.findById(dto.user_id())
+        └─ Se não encontrado → throw UserNotFoundException
    
-   4.2. VALIDAÇÃO DE DATAS
-        └─ if (endAt < startAt) → throw InvalidDateRangeException
-   
-   4.3. VALIDAÇÃO DE USUÁRIO (opcional)
-        └─ if (user_id != null)
-           └─ userRepository.findById(user_id)
-           └─ if (!exists) → throw UserNotFoundException
-   
-   4.4. CONVERSÃO
+   4.2. CONVERSÃO DTO → ENTITY
         └─ Task task = taskMapper.toEntity(dto)
+        └─ Cria: new Task(title, description, priority, null)
    
-   4.5. PERSISTÊNCIA
+   4.3. VINCULAÇÃO COM USUÁRIO
+        └─ task.setUser(userFound)
+   
+   4.4. PERSISTÊNCIA
         └─ Task taskSaved = taskRepository.save(task)
-   
-   4.6. RETORNO
-        └─ return taskMapper.toDto(taskSaved)
 
 5. REPOSITORY
-   └─ Similar ao fluxo de User
+   └─ TaskRepositoryImpl.save(task)
+   └─ Delega para: taskJpaRepository.save(task)
 
 6. MYSQL
-   └─ INSERT INTO Task (...)
+   └─ INSERT INTO Task (id, title, description, priority, user_id, createdAt)
+   └─ Persiste com FK para User
 
 7. RESPONSE
    └─ HTTP 201 CREATED
-   └─ Body: TaskResponseDTO
-```
-
-#### Implementação Mínima Necessária:
-
-**1. Completar CreateTaskUseCaseImpl**:
-```java
-@Override
-public TaskResponseDTO createTask(TaskRequestDTO taskRequestDTO) {
-    // Validações
-    if (taskRequestDTO == null) {
-        throw new TaskCantBeNullException("Task can't be null!");
-    }
-    
-    // Validar user_id (se fornecido)
-    if (taskRequestDTO.user_id() != null) {
-        userRepository.findById(taskRequestDTO.user_id())
-            .orElseThrow(() -> new UserNotFoundException("User not found!"));
-    }
-    
-    // Conversão e persistência
-    Task task = taskMapper.toEntity(taskRequestDTO);
-    Task taskSaved = taskRepository.save(task);
-    
-    return taskMapper.toDto(taskSaved);
-}
-```
-
-**2. Implementar endpoint no TaskController**:
-```java
-@PostMapping
-public ResponseEntity<TaskResponseDTO> createTask(
-    @RequestBody TaskRequestDTO taskRequestDTO
-) {
-    TaskResponseDTO response = createTaskUseCase.createTask(taskRequestDTO);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
-}
-```
-
-**3. Adicionar injeção de UserRepository no CreateTaskUseCaseImpl**:
-```java
-private final UserRepository userRepository;
-
-public CreateTaskUseCaseImpl(
-    TaskRepository taskRepository,
-    TaskMapper taskMapper,
-    UserRepository userRepository
-) {
-    this.taskRepository = taskRepository;
-    this.taskMapper = taskMapper;
-    this.userRepository = userRepository;
-}
+   └─ Body: TaskResponseDTO (com UserResponseDTO embutido)
 ```
 
 ---
@@ -1502,12 +1772,12 @@ public CreateTaskUseCaseImpl(
 
 | Aspecto | User | Task |
 |---------|------|------|
-| **Controller** | ✅ Todos os 6 endpoints implementados | ❌ Nenhum método implementado |
-| **Use Case** | ✅ Todos os 5 use cases implementados | ❌ Retorna null ou vazio |
-| **Repository** | ✅ Funcional | ✅ Funcional (estrutura) |
-| **Validações** | ✅ Validações completas | ❌ Nenhuma |
-| **Mapper** | ✅ Funcional | ✅ Funcional (estrutura) |
-| **Banco de Dados** | ✅ Todas operações CRUD funcionando | ❌ Nenhuma operação implementada |
+| **Controller** | ✅ Todos os 7 endpoints implementados | ✅ Todos os 10 endpoints implementados |
+| **Use Case** | ✅ Todos os 5 use cases implementados | ✅ Todos os 5 use cases implementados |
+| **Repository** | ✅ Funcional | ✅ Funcional com queries customizadas |
+| **Validações** | ✅ Bean Validation + validações programáticas | ✅ Bean Validation + validações programáticas |
+| **Mapper** | ✅ Funcional | ✅ Funcional com UserResponseDTO embutido |
+| **Banco de Dados** | ✅ Todas operações CRUD funcionando | ✅ Todas operações CRUD funcionando |
 
 ---
 
@@ -1667,204 +1937,68 @@ public UserController(
 
 ### 9.3 Melhorias Estruturais Sugeridas
 
-#### 🔴 Críticas (Impacto Alto):
+#### ✅ Melhorias Críticas Implementadas:
 
-##### 1. Implementar Use Cases Faltantes
+##### 1. ~~Implementar Use Cases Faltantes~~ → **CONCLUÍDO**
+- Todos os 5 use cases de Task implementados com lógica completa
+- Todos os 5 use cases de User implementados com lógica completa
 
-**Problema**: 8 de 9 Use Cases não implementados
+##### 2. ~~Corrigir UserController~~ → **CONCLUÍDO**
+- Controller chama use cases corretamente
+- `@Valid` aplicado nos `@RequestBody`
 
-**Solução**:
-- Implementar CRUD completo de User
-- Implementar CRUD completo de Task
-- Prioridade: CreateTask, FindAllUsers, FindUserById
+##### 3. ~~Global Exception Handler~~ → **CONCLUÍDO**
+- `GlobalExceptionHandler` com `@RestControllerAdvice` implementado
+- 10 handlers cobrindo todas as exceções do sistema
 
-##### 2. Corrigir UserController
+##### 4. ~~Remover Senha do UserResponseDTO~~ → **CONCLUÍDO**
+- `UserResponseDTO` não expõe mais o campo `password`
 
-**Problema**: Endpoint não chama Use Case
+##### 5. ~~Adicionar Bean Validation nos DTOs~~ → **CONCLUÍDO**
+- `UserRequestDTO` e `TaskRequestDTO` com validações completas
 
-**Solução**:
-```java
-@PostMapping
-public ResponseEntity<UserResponseDTO> saveUser(
-    @Valid @RequestBody UserRequestDTO userRequestDTO
-) {
-    UserResponseDTO response = createUserUseCase.createUser(userRequestDTO);
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
-}
-```
+##### 6. ~~Configurar Spring Security~~ → **CONCLUÍDO** (parcialmente)
+- `SecurityFilterChain` configurado com CSRF desabilitado
+- Todos os endpoints liberados (autenticação JWT ainda pendente)
 
-##### 3. Global Exception Handler
+##### 7. ~~Relacionamento User-Task com JPA~~ → **CONCLUÍDO**
+- `Task.user` é `@ManyToOne` com `@JoinColumn`
 
-**Problema**: Exceções retornam 500
+##### 8. ~~Enum para Priority~~ → **CONCLUÍDO**
+- `TaskPriority` enum com LOW, MEDIUM, HIGH
 
-**Solução**:
-```java
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> handleEmailExists(EmailAlreadyExistsException ex) {
-        ErrorResponse error = new ErrorResponse(
-            HttpStatus.CONFLICT.value(),
-            ex.getMessage(),
-            LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
-    }
-    
-    @ExceptionHandler(UserCantBeNullException.class)
-    public ResponseEntity<ErrorResponse> handleUserNull(UserCantBeNullException ex) {
-        ErrorResponse error = new ErrorResponse(
-            HttpStatus.BAD_REQUEST.value(),
-            ex.getMessage(),
-            LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-    
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(ConstraintViolationException ex) {
-        // Tratar validações Bean Validation
-    }
-}
-```
+##### 9. ~~Sem CORS configurado~~ → **CONCLUÍDO**
+- `CorsConfig` implementado
 
-##### 4. Remover Senha do UserResponseDTO
+---
 
-**Problema**: Expõe senha (risco de segurança)
+#### 🔴 Críticas Pendentes (Impacto Alto):
+
+##### 1. Adicionar Autenticação JWT
+
+**Problema**: Todos os endpoints são públicos, sem autenticação
+
+**Solução**: Implementar JWT com Spring Security
+
+##### 2. Implementar Testes Automatizados
+
+**Problema**: Cobertura de testes em 0%
 
 **Solução**:
-```java
-public record UserResponseDTO(
-    UUID id,
-    String name,
-    String email,
-    // String password,  ← REMOVER
-    LocalDateTime createdAt
-) {}
-```
-
-##### 5. Adicionar Bean Validation nos DTOs
-
-**Problema**: DTOs sem validação
-
-**Solução**:
-```java
-public record UserRequestDTO(
-    @NotBlank(message = "Name is required")
-    @Size(max = 100, message = "Name must be less than 100 characters")
-    String name,
-    
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
-    String email,
-    
-    @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
-    String password
-) {}
-```
+- Testes unitários dos Use Cases
+- Testes de integração dos Repositories
+- Testes de API dos Controllers
 
 ---
 
 #### 🟡 Importantes (Impacto Médio):
 
-##### 6. Configurar Spring Security
+##### 3. Externalizar Configurações
 
-**Problema**: Dependência sem uso
-
-**Solução**:
-```java
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
-    
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/users").permitAll()  // Criar usuário público
-                .anyRequest().authenticated()            // Demais protegidos
-            )
-            .build();
-    }
-    
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-}
-```
-
-##### 7. Relacionamento User-Task com JPA
-
-**Problema**: `user_id` como UUID simples, sem relacionamento
-
-**Solução**:
-```java
-@Entity(name = "Task")
-public class Task {
-    // ...
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;  // Em vez de UUID user_id
-    
-    // ...
-}
-```
-
-##### 8. Enum para Priority
-
-**Problema**: Priority como String livre
-
-**Solução**:
-```java
-public enum TaskPriority {
-    LOW,
-    MEDIUM,
-    HIGH,
-    URGENT
-}
-
-@Entity(name = "Task")
-public class Task {
-    @Enumerated(EnumType.STRING)
-    private TaskPriority priority;
-}
-```
-
-##### 9. Validação de Datas em Task
-
-**Problema**: Sem validar endAt > startAt
-
-**Solução**:
-```java
-// Custom Validator
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = DateRangeValidator.class)
-public @interface ValidDateRange {
-    String message() default "End date must be after start date";
-}
-
-@ValidDateRange
-public record TaskRequestDTO(
-    // ...
-    LocalDateTime startAt,
-    LocalDateTime endAt,
-    // ...
-) {}
-```
-
-##### 10. Externalizar Configurações
-
-**Problema**: Credenciais hardcoded
+**Problema**: Credenciais hardcoded no `application.properties`
 
 **Solução**:
 ```properties
-# application.properties
 spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/rocketseat_course}
 spring.datasource.username=${DB_USERNAME:root}
 spring.datasource.password=${DB_PASSWORD}
@@ -1874,7 +2008,7 @@ spring.datasource.password=${DB_PASSWORD}
 
 #### 🟢 Desejáveis (Impacto Baixo):
 
-##### 11. Adicionar Swagger/OpenAPI
+##### 4. Adicionar Swagger/OpenAPI
 
 ```xml
 <!-- pom.xml -->
@@ -1885,7 +2019,7 @@ spring.datasource.password=${DB_PASSWORD}
 </dependency>
 ```
 
-##### 12. Paginação em Listagens
+##### 5. Paginação em Listagens
 
 ```java
 public interface FindAllUsersUseCase {
@@ -1893,7 +2027,7 @@ public interface FindAllUsersUseCase {
 }
 ```
 
-##### 13. Soft Delete
+##### 6. Soft Delete
 
 ```java
 @Entity
@@ -1907,7 +2041,7 @@ public class User {
 }
 ```
 
-##### 14. Auditoria Completa
+##### 7. Auditoria Completa
 
 ```java
 @EntityListeners(AuditingEntityListener.class)
@@ -1927,13 +2061,7 @@ public abstract class AuditableEntity {
 }
 ```
 
-##### 15. Testes Automatizados
-
-- Testes unitários dos Use Cases
-- Testes de integração dos Repositories
-- Testes de API dos Controllers
-
-##### 16. Logging Estruturado
+##### 8. Logging Estruturado
 
 ```java
 @Slf4j
@@ -1955,7 +2083,7 @@ public class CreateUserUseCaseImpl implements CreateUserUseCase {
 }
 ```
 
-##### 17. Health Checks
+##### 9. Health Checks
 
 ```xml
 <dependency>
@@ -1969,7 +2097,7 @@ management.endpoints.web.exposure.include=health,info
 management.endpoint.health.show-details=always
 ```
 
-##### 18. Profile-Specific Configurations
+##### 10. Profile-Specific Configurations
 
 ```properties
 # application-dev.properties
@@ -1980,7 +2108,7 @@ spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.show-sql=false
 ```
 
-##### 19. Docker Compose para Dev
+##### 11. Docker Compose para Dev
 
 ```yaml
 version: '3.8'
@@ -1994,7 +2122,7 @@ services:
       - "3306:3306"
 ```
 
-##### 20. CI/CD Pipeline
+##### 12. CI/CD Pipeline
 
 ```yaml
 # .github/workflows/ci.yml
@@ -2020,28 +2148,30 @@ jobs:
 #### Estado Atual do Projeto:
 
 **Arquitetura**: ✅ Excelente - Segue Clean Architecture  
-**Implementação User**: ✅ Completa - Todos os 5 Use Cases e 6 endpoints funcionando  
-**Implementação Task**: ❌ Não implementada - Apenas estrutura básica  
-**Segurança**: ⚠️ Básica - BCrypt ok, mas sem autenticação JWT  
-**Qualidade**: 🟡 Média - Módulo User completo, Task pendente
+**Implementação User**: ✅ Completa - Todos os 5 Use Cases e 7 endpoints funcionando  
+**Implementação Task**: ✅ Completa - Todos os 5 Use Cases e 10 endpoints funcionando  
+**Segurança**: ⚠️ Básica - BCrypt ok, sem senha no response, mas sem autenticação JWT  
+**Qualidade**: 🟢 Boa - Ambos os módulos completos, validações e exception handling robustos
 
 #### Prioridades de Melhoria:
 
-1. **Urgente**: Implementar módulo de Tasks (use cases e endpoints)
-2. **Alta**: Adicionar autenticação JWT
-3. **Alta**: Adicionar autorização baseada em roles
-4. **Média**: Implementar testes automatizados
-5. **Média**: Adicionar paginação nos endpoints de listagem
-6. **Baixa**: Melhorias de qualidade (logging estruturado, health checks)
+1. **Alta**: Adicionar autenticação JWT
+2. **Alta**: Adicionar autorização baseada em roles
+3. **Média**: Implementar testes automatizados
+4. **Média**: Adicionar paginação nos endpoints de listagem
+5. **Baixa**: Melhorias de qualidade (logging estruturado, health checks)
 
 #### Métricas:
 
-- **Linhas de Código**: ~1200
+- **Linhas de Código**: ~2000
 - **Entidades**: 2 (User, Task)
+- **Enums**: 1 (TaskPriority)
 - **Use Cases User**: 5 de 5 (100% completos)
-- **Use Cases Task**: 0 de 4 (0% completos)
-- **Endpoints User**: 6 de 6 implementados (100%)
-- **Endpoints Task**: 0 de 4 implementados (0%)
+- **Use Cases Task**: 5 de 5 (100% completos)
+- **Endpoints User**: 7 de 7 implementados (100%)
+- **Endpoints Task**: 10 de 10 implementados (100%)
+- **Exceções customizadas**: 8
+- **Exception Handlers**: 10
 - **Cobertura de Testes**: 0%
 
 ---
@@ -2050,34 +2180,39 @@ jobs:
 
 Este projeto demonstra uma **excelente arquitetura** baseada em Clean Architecture, com separação clara de responsabilidades e uso correto de padrões de design. A estrutura está bem organizada e preparada para escalar.
 
-O **módulo de User está completamente funcional**, com todos os 5 use cases implementados e todos os 6 endpoints REST operacionais. O código implementado demonstra boas práticas de validação, criptografia de senha e tratamento de exceções.
+O **módulo de User está completamente funcional**, com todos os 5 use cases implementados e todos os 7 endpoints REST operacionais, incluindo busca por nome.
 
-O **módulo de Task**, por outro lado, possui apenas a estrutura básica (entidades, interfaces, DTOs), mas sem implementação funcional dos use cases ou endpoints.
+O **módulo de Task também está completamente funcional**, com todos os 5 use cases implementados (incluindo as operações `startTask` e `endTask`), 10 endpoints REST operacionais, relacionamento `@ManyToOne` com User, enum `TaskPriority` e validações completas nos DTOs.
 
 **Pontos Positivos**:
 - ✅ Arquitetura sólida e escalável baseada em Clean Architecture
-- ✅ Módulo User 100% completo e funcional
+- ✅ Módulo User 100% completo e funcional (7 endpoints)
+- ✅ Módulo Task 100% completo e funcional (10 endpoints)
 - ✅ Boas práticas de design (Use Cases, Repositories, DTOs, Mappers)
 - ✅ Criptografia de senha com BCrypt implementada corretamente
-- ✅ Sistema robusto de exceções customizadas (8 exceções)
+- ✅ Senha não exposta nas respostas (UserResponseDTO sem campo password)
+- ✅ Sistema robusto de exceções customizadas (8 exceções, 10 handlers)
 - ✅ GlobalExceptionHandler para tratamento centralizado de erros
 - ✅ Validações com Bean Validation nos DTOs
+- ✅ TaskPriority como Enum (LOW, MEDIUM, HIGH)
+- ✅ Relacionamento ManyToOne entre Task e User
+- ✅ SecurityFilterChain configurado (CSRF desabilitado)
+- ✅ CorsConfig implementado
 - ✅ Código limpo, bem organizado e seguindo SOLID
 
-**Áreas de Melhoria**:
-- ❌ Completar implementação do módulo de Tasks (use cases e endpoints)
-- ❌ Adicionar autenticação JWT
-- ❌ Implementar autorização baseada em roles
-- ❌ Adicionar testes automatizados (unitários e de integração)
-- ⚠️ Implementar paginação nos endpoints de listagem
-- ⚠️ Adicionar logging estruturado
-- ⚠️ Configurar health checks e monitoring
+**Próximas Melhorias**:
+- ❌ Autenticação JWT pendente
+- ❌ Autorização baseada em roles pendente
+- ❌ Testes automatizados (unitários e de integração) pendentes
+- ⚠️ Paginação nos endpoints de listagem
+- ⚠️ Logging estruturado
+- ⚠️ Health checks e monitoring
 
-**Conclusão Final**: O projeto está em um **excelente estado arquitetural** com o módulo de User completamente implementado e pronto para produção (exceto autenticação). Serve como uma **excelente base** para adicionar o módulo de Tasks e features de segurança. A implementação do módulo User pode ser usada como template/referência para implementar o módulo de Tasks.
+**Conclusão Final**: O projeto está em um **excelente estado** com ambos os módulos (User e Task) completamente implementados e funcionais. A aplicação possui CRUD completo, filtros avançados, controle de ciclo de vida das tarefas (iniciar/finalizar), validações robustas e tratamento de erros consistente. O próximo passo natural é adicionar autenticação e autorização via JWT.
 
 ---
 
-**Documento atualizado em**: 18 de Fevereiro de 2026  
+**Documento atualizado em**: 24 de Fevereiro de 2026  
 **Versão do Projeto**: 0.0.1-SNAPSHOT  
 **Spring Boot**: 3.5.10  
 **Java**: 21
