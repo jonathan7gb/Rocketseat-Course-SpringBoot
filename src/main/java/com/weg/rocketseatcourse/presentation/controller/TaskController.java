@@ -77,4 +77,16 @@ public class TaskController {
         deleteTaskUseCase.deleteTaskById(id);
         return ResponseEntity.ok().body("Task deleted sucessfully!");
     }
+
+    @PutMapping("/starttask/{id}")
+    public ResponseEntity<Boolean> startTask(@PathVariable UUID id){
+        boolean started = updateTaskUseCase.startTask(id);
+        return ResponseEntity.ok().body(started);
+    }
+
+    @PutMapping("/endtask/{id}")
+    public ResponseEntity<Boolean> endTask(@PathVariable UUID id){
+        boolean ended = updateTaskUseCase.endTask(id);
+        return ResponseEntity.ok().body(ended);
+    }
 }

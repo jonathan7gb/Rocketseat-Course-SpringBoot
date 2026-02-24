@@ -8,4 +8,7 @@ import java.util.UUID;
 public interface UpdateTaskUseCase {
 
     TaskResponseDTO updateTask(TaskRequestDTO taskRequestDTO, UUID id);
+
+    boolean startTask(UUID id);
+    boolean endTask(UUID id);
 }
