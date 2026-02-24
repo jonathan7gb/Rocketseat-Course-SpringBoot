@@ -9,6 +9,6 @@ public interface UpdateTaskUseCase {
 
     TaskResponseDTO updateTask(TaskRequestDTO taskRequestDTO, UUID id);
 
-    boolean startTask(UUID id);
-    boolean endTask(UUID id);
+    void startTask(UUID id);
+    void endTask(UUID id);
 }

@@ -8,11 +8,12 @@ import com.weg.rocketseatcourse.domain.entity.Task;
 import com.weg.rocketseatcourse.domain.enums.TaskPriority;
 import com.weg.rocketseatcourse.domain.repository.TaskRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
-@Component
+@Service
 public class FindTaskByIdUseCaseImpl implements FindTaskByIdUseCase {
 
     private final TaskRepository taskRepository;

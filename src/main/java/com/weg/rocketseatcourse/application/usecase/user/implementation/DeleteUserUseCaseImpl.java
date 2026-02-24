@@ -9,10 +9,11 @@ import com.weg.rocketseatcourse.domain.repository.TaskRepository;
 import com.weg.rocketseatcourse.domain.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-@Component
+@Service
 public class DeleteUserUseCaseImpl implements DeleteUserUseCase {
 
     private final UserRepository userRepository;

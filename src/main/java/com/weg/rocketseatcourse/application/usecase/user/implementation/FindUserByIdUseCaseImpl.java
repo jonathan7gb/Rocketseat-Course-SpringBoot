@@ -6,13 +6,14 @@ import com.weg.rocketseatcourse.application.mapper.UserMapper;
 import com.weg.rocketseatcourse.application.usecase.user.interfaces.FindUserByIdUseCase;
 import com.weg.rocketseatcourse.domain.entity.User;
 import com.weg.rocketseatcourse.domain.repository.UserRepository;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
 
-@Component
+@Service
 public class FindUserByIdUseCaseImpl implements FindUserByIdUseCase {
 
     private final UserRepository userRepository;

@@ -7,11 +7,12 @@ import com.weg.rocketseatcourse.application.usecase.user.interfaces.FindAllUsers
 import com.weg.rocketseatcourse.domain.entity.User;
 import com.weg.rocketseatcourse.domain.repository.UserRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Component
+@Service
 public class FindAllUsersUseCaseImpl implements FindAllUsersUseCase {
 
     private final UserRepository userRepository;

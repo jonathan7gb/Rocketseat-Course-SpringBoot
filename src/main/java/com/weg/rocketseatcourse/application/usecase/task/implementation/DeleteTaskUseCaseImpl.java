@@ -5,10 +5,11 @@ import com.weg.rocketseatcourse.application.usecase.task.interfaces.DeleteTaskUs
 import com.weg.rocketseatcourse.domain.entity.Task;
 import com.weg.rocketseatcourse.domain.repository.TaskRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-@Component
+@Service
 public class DeleteTaskUseCaseImpl implements DeleteTaskUseCase {
 
     private final TaskRepository taskRepository;

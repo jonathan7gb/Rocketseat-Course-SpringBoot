@@ -7,11 +7,12 @@ import com.weg.rocketseatcourse.application.usecase.task.interfaces.FindAllTasks
 import com.weg.rocketseatcourse.domain.entity.Task;
 import com.weg.rocketseatcourse.domain.repository.TaskRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Service
 public class FindAllTasksUseCaseImpl implements FindAllTasksUseCase {
 
     private final TaskRepository taskRepository;

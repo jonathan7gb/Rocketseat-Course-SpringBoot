@@ -79,14 +79,14 @@ public class TaskController {
     }
 
     @PutMapping("/starttask/{id}")
-    public ResponseEntity<Boolean> startTask(@PathVariable UUID id){
-        boolean started = updateTaskUseCase.startTask(id);
-        return ResponseEntity.ok().body(started);
+    public ResponseEntity<Void> startTask(@PathVariable UUID id){
+        updateTaskUseCase.startTask(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/endtask/{id}")
-    public ResponseEntity<Boolean> endTask(@PathVariable UUID id){
-        boolean ended = updateTaskUseCase.endTask(id);
-        return ResponseEntity.ok().body(ended);
+    public ResponseEntity<Void> endTask(@PathVariable UUID id){
+        updateTaskUseCase.endTask(id);
+        return ResponseEntity.noContent().build();
     }
 }

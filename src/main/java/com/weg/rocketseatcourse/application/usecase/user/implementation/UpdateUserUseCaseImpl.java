@@ -10,11 +10,12 @@ import com.weg.rocketseatcourse.domain.entity.User;
 import com.weg.rocketseatcourse.domain.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-@Component
+@Service
 public class UpdateUserUseCaseImpl implements UpdateUserUseCase {
 
     private final UserRepository userRepository;
