@@ -31,6 +31,7 @@ public class UpdateTaskUseCaseImpl implements UpdateTaskUseCase {
         this.taskMapper = taskMapper;
     }
 
+    @Transactional
     @Override
     public TaskResponseDTO updateTask(TaskRequestDTO taskRequestDTO, UUID id) {
         Task task = taskRepository.findById(id)

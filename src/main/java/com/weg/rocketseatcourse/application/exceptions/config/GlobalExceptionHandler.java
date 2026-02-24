@@ -26,6 +26,11 @@ public class GlobalExceptionHandler{
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error!");
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex){
+        return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEmailExists(EmailAlreadyExistsException ex){
         return buildError(HttpStatus.CONFLICT, ex.getMessage());
