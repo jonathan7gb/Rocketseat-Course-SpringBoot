@@ -9,6 +9,5 @@ import java.util.UUID;
 public interface FindUserByIdUseCase {
 
     UserResponseDTO findUserByID(UUID id);
-    UserResponseDTO findUserByEmail(String email);
     List<UserResponseDTO> findByName(String name);
 }

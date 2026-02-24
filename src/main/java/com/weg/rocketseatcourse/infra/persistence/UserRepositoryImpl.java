@@ -5,6 +5,7 @@ import com.weg.rocketseatcourse.domain.entity.User;
 import com.weg.rocketseatcourse.domain.repository.UserRepository;
 import com.weg.rocketseatcourse.infra.persistence.jpa.UserJpaRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Repository;
 
 import java.util.Comparator;
@@ -47,7 +48,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
+    public UserDetails findByEmail(String email) {
         return userJpaRepository.findByEmail(email);
     }
 

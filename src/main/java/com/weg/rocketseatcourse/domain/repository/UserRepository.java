@@ -1,6 +1,7 @@
 package com.weg.rocketseatcourse.domain.repository;
 
 import com.weg.rocketseatcourse.domain.entity.User;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +13,7 @@ public interface UserRepository {
 
     List<User> findAll();
     List<User> findAllByOrderByNameAsc();
-    Optional<User>  findByEmail(String email);
+    UserDetails findByEmail(String email);
     Optional<User> findById(UUID id);
     List<User> findByNameContainingIgnoreCaseOrderByNameAsc(String name);
 
