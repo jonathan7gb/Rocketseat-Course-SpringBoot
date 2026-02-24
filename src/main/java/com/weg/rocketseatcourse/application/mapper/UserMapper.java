@@ -16,7 +16,7 @@ public class UserMapper {
     }
 
     public UserResponseDTO toDto(User user){
-        return new UserResponseDTO(user.getId(), user.getName(), user.getEmail(), user.getCreatedAt());
+        return new UserResponseDTO(user.getId(), user.getName(), user.getEmail(), user.getCreatedAt(), user.getRole());
     }
 
     public List<UserResponseDTO> listEntityToDto(List<User> users){

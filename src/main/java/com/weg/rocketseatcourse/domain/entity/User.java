@@ -1,5 +1,6 @@
 package com.weg.rocketseatcourse.domain.entity;
 
+import com.weg.rocketseatcourse.domain.enums.RoleUser;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,10 +32,14 @@ public class User {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column
+    private String role;
+
     public User(String name, String email, String password) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.role = RoleUser.ADMIN.name();
     }
 
     public void encryptPassword(PasswordEncoder encoder) {
