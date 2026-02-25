@@ -1,4 +1,4 @@
-package com.weg.rocketseatcourse.application.security.service;
+package com.weg.rocketseatcourse.application.auth.service;
 
 import com.weg.rocketseatcourse.application.exceptions.UserNotFoundException;
 import com.weg.rocketseatcourse.domain.repository.UserRepository;
